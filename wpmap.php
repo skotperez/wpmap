@@ -24,14 +24,11 @@ License: GPLv2+
 	register_activation_hook( __FILE__, 'wpmap_create_db_table' );
 
 
-// where to find styles and scripts
-$wpmap_css = plugin_dir_url(__FILE__) . 'style/';
-$wpmap_js = plugin_dir_url(__FILE__) . 'js/';
 
 // Register styles and scripts
 function wpmap_scripts_styles() {
 	wp_enqueue_style( 'leaflet-css','http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css' );
-	wp_enqueue_style( 'wpmap-css',$wpmap_css. 'map.css' );
+	wp_enqueue_style( 'wpmap-css',plugins_url( 'style/map.css' , __FILE__) );
 	wp_enqueue_script(
 		'leaflet-js',
 		'http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js',
@@ -41,14 +38,14 @@ function wpmap_scripts_styles() {
 	);
 	wp_enqueue_script(
 		'wpmap-js',
-		$wpmap_js. 'map.js',
+		plugins_url( 'js/map.js' , __FILE__),
 		array( 'leaflet-js' ),
 		'0.1',
 		TRUE
 	);
 	wp_enqueue_script(
 		'leaflet-hash',
-		$wpmap_js. 'leaflet-hash.js',
+		plugins_url( 'js/leaflet-hash.js' , __FILE__),
 		array( 'wpmap-js' ),
 		'0.1',
 		TRUE
