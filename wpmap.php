@@ -10,6 +10,15 @@ License: GPLv2+
 	+ ...
 */
 
+	/* EDIT THIS VARS TO SUIT YOUR THEME */
+	if (!defined('WPMAP_CITY'))
+	    define('WPMAP_CITY', '_wpmap_city');
+
+	if (!defined('WPMAP_COUNTRY'))
+	    define('WPMAP_COUNTRY', '_wpmap_country');
+	/* STOP EDIT */
+	
+
 	/* Load map JavaScript and styles */
 	add_action( 'wp_enqueue_scripts', 'wpmap_scripts_styles' );
 
@@ -23,6 +32,8 @@ License: GPLv2+
 	// create map data table in db
 	register_activation_hook( __FILE__, 'wpmap_create_db_table' );
 
+	// add meta boxes
+	add_action( 'add_meta_boxes', 'wpmap_meta_boxes_add' );
 
 
 // Register styles and scripts
@@ -86,8 +97,8 @@ function wpmap_geocoding( $post_id ) {
 	if ( wp_is_post_revision( $post_id ) )
 		return;
 
-	$city = urlencode(get_post_meta( $post_id, '_wpmap_city', true ));
-	$country = urlencode(get_post_meta( $post_id, '_wpmap_country', true ));
+	$city = urlencode(get_post_meta( $post_id, WPMAP_CITY, true ));
+	$country = urlencode(get_post_meta( $post_id, WPMAP_COUNTRY, true ));
 
 	if ( $city != '' || $country != '' ) {
 
@@ -145,6 +156,5 @@ function wpmap_delete_geocoding( $post_id ) {
 	$sql = $wpdb->delete( $table, $where, $where_format = null );	
 
 } // END delete row script
-
 
 ?>
