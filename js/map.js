@@ -86,8 +86,8 @@ function init() {
 	map = new L.Map('map', {		// use the div called map
 		center: start,			// centre the map as above
 		zoom: 14,			// start up zoom level
-//		layers: [lyrOsm,lyrPlq]		// layers to add 
-		layers: [lyrOsm]		// layers to add 
+		layers: [lyrOsm,lyrPlq]		// layers to add 
+//		layers: [lyrOsm]		// layers to add 
 	});
 
 	// create a layer control
