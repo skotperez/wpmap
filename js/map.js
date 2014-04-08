@@ -160,7 +160,7 @@ function setIcon(feature,ll) {
 function askForPlaques() {
 	var data='bbox=' + map.getBounds().toBBoxString();
 	jQuery.ajax({
-		url: 'wp-content/themes/wpmap/map/map.php',
+		url: 'wp-content/plugins/wpmap/ajax/map.php',
 		//url: 'map.php',
 		dataType: 'json',
 		data: data,
