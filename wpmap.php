@@ -21,7 +21,7 @@ License: GPLv2+
 	add_action('deleted_post', 'wpmap_delete_geocoding');
 
 	// create map data table in db
-	add_action("after_switch_theme", "wpmap_create_db_table");
+	register_activation_hook( __FILE__, 'wpmap_create_db_table' );
 
 
 // where to find styles and scripts
@@ -75,7 +75,7 @@ function wpmap_create_db_table() {
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	dbDelta( $sql );
 
-	add_option( "jal_db_version", $wpmap_db_version );
+	add_option( "wpmap_db_version", $wpmap_db_version );
 } // end create table in db
 
 // Geocoding script using Nominatim http://nominatim.openstreetmap.org/
