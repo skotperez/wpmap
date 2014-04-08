@@ -81,11 +81,13 @@ function init() {
 	
 	// set the starting location for the centre of the map
 	var start = new L.LatLng(42.863690,1.200625);
+	// set the initial zoom of the map
+	var zoom = 10;
 	
 	// create the map
 	map = new L.Map('map', {		// use the div called map
 		center: start,			// centre the map as above
-		zoom: 14,			// start up zoom level
+		zoom: zoom,			// start up zoom level
 		layers: [lyrOsm,lyrPlq]		// layers to add 
 //		layers: [lyrOsm]		// layers to add 
 	});
