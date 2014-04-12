@@ -64,8 +64,8 @@ function wpmap_scripts_styles() {
 } // end map scripts and styles
 
 // create map data table in db
-global $wpmap_db_version;
-$wpmap_db_version = "0.1";
+//global $wpmap_db_version;
+//$wpmap_db_version = "0.1";
 function wpmap_create_db_table() {
 	global $wpdb;
 	$table_name = $wpdb->prefix . "wpmap"; 
@@ -83,7 +83,7 @@ function wpmap_create_db_table() {
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	dbDelta( $sql );
 
-	add_option( "wpmap_db_version", $wpmap_db_version );
+//	add_option( "wpmap_db_version", $wpmap_db_version );
 } // end create table in db
 
 // Geocoding script using Nominatim http://nominatim.openstreetmap.org/
