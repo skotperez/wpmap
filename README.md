@@ -45,7 +45,7 @@ If you want to show the map in any place of your theme, other than the content o
 This functions accepts the same parameters than the shorcode above. All of them are optional. For example:
 
 `$args = array(
-`	'layers' => "'local','national'",
-`	'colors' => "'red','blue'"
-`);
-`wpmap_showmap($args);
+	'layers' => "'local','national'",
+	'colors' => "'red','blue'"
+);`
+`wpmap_showmap($args);`
