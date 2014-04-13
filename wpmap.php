@@ -11,11 +11,16 @@ License: GPLv2+
 */
 
 	/* EDIT THIS VARS TO SUIT YOUR THEME */
+	// be sure to change 'city' and 'country' for your custom fields
 	if (!defined('WPMAP_CITY'))
-	    define('WPMAP_CITY', '_wpmap_city');
+	    define('WPMAP_CITY', 'city');
 
 	if (!defined('WPMAP_COUNTRY'))
-	    define('WPMAP_COUNTRY', '_wpmap_country');
+	    define('WPMAP_COUNTRY', 'country');
+
+	// be sure to change 'layer' for the name for the custom field that will define the layer
+	if (!defined('WPMAP_LAYER'))
+	    define('WPMAP_LAYER', 'layer');
 	/* STOP EDIT */
 	
 
@@ -32,12 +37,10 @@ License: GPLv2+
 	// create map data table in db
 	register_activation_hook( __FILE__, 'wpmap_create_db_table' );
 
-	// add meta boxes
-	add_action( 'add_meta_boxes', 'wpmap_meta_boxes_add' );
-
 
 // Register styles and scripts
 function wpmap_scripts_styles() {
+
 	wp_enqueue_style( 'leaflet-css','http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css' );
 	wp_enqueue_style( 'wpmap-css',plugins_url( 'style/map.css' , __FILE__) );
 	wp_enqueue_script(
@@ -97,26 +100,31 @@ function wpmap_geocoding( $post_id ) {
 	if ( wp_is_post_revision( $post_id ) )
 		return;
 
+	// get post city and country
 	$city = urlencode(get_post_meta( $post_id, WPMAP_CITY, true ));
 	$country = urlencode(get_post_meta( $post_id, WPMAP_COUNTRY, true ));
 
 	if ( $city != '' || $country != '' ) {
 
+		// use nominatim geocoding service to get coords
 		$results_json = file_get_contents("http://nominatim.openstreetmap.org/search?format=json&city=" .$city. "&country=" .$country);
 		$results = json_decode($results_json,TRUE); // if second parameter is set to TRUE, the output is ass. array
 
+		// info to insert in db
 		$lat = $results[0]['lat'];
 		$lon = $results[0]['lon'];
 		$post_status = get_post_status( $post_id );
+		$post_layer = get_post_meta( $post_id, WPMAP_LAYER, true );
 
-		$table = "wp_wpmap";
+		// preparing data to insert
+		$table = $wpdb->prefix . "wpmap"; 
 		$data = array( 
 			//'id' => is autoincrement
 			'post_id' => $post_id,
 			'post_status' => $post_status,
 			'lat' => $lat,
 			'lon' => $lon,
-			'colour' => '',
+			'colour' => $post_layer,
 			'imageid' => ''
 		);
 		$format = array(
@@ -129,14 +137,15 @@ function wpmap_geocoding( $post_id ) {
 			'%s'
 		); 
 
+		// query to know if there is already a row for this post
 		$dbquery = "SELECT * FROM $table WHERE post_id = $post_id";
 		$sql = $wpdb->get_row($dbquery,ARRAY_A);
 		if ( $sql != null ) {
-			// update
+			// if yes, update
 			$where = array('post_id' => $post_id );
 			$wpdb->update( $table, $data, $where, $format );
 		} else {
-			// insert
+			// if no, insert
 			$wpdb->insert( $table, $data, $format );
 		}
 
@@ -149,7 +158,7 @@ function wpmap_geocoding( $post_id ) {
 function wpmap_delete_geocoding( $post_id ) {
 
 	global $wpdb;
-	$table = "wp_wpmap";
+	$table = $wpdb->prefix . "wpmap"; 
 	$where = array('post_id' => $post_id );
 
 	// delete

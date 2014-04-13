@@ -12,7 +12,6 @@
  */
 
 // get the server credentials from a shared import file
-//$idb= $_SERVER['DOCUMENT_ROOT']."/db.php";
 $idb= $_SERVER['DOCUMENT_ROOT']."/wp-config.php";
 //include $idb;
 require_once($idb);
@@ -32,7 +31,6 @@ list($left,$bottom,$right,$top)=explode(",",$bbox);
 
 // open the database
 try {
-//	$db = new PDO('mysql:host='.$dbhost.';dbname='.$dbname.';charset=utf8', $dbuser, $dbpass);
 	$db = new PDO('mysql:host='.DB_HOST.';dbname='.DB_NAME.';charset=' .DB_CHARSET, DB_USER, DB_PASSWORD);
 } catch(PDOException $e) {
 	// send the PDOException message
@@ -43,10 +41,10 @@ try {
 	sendajax($ajxres);
 }
 
-//	global $wpdb;
+	global $wpdb;
+	$table = $wpdb->prefix."wpmap";
 try {
-	$sql="SELECT post_id,lat,lon,colour,imageid FROM wp_wpmap WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish' ORDER BY colour";
-//	$stmt = $wpdb->get_results($sql,ARRAY_A);
+	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish' ORDER BY colour";
 	$stmt = $db->prepare($sql);
 	$stmt->bindParam(':left', $left, PDO::PARAM_STR);
 	$stmt->bindParam(':right', $right, PDO::PARAM_STR);
