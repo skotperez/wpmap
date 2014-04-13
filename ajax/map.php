@@ -16,6 +16,7 @@ require_once($idb);
 
 if (isset($_GET['bbox'])) {
 	$bbox=$_GET['bbox'];
+	$pt = $_GET['pt'];
 } else {
 	// invalid request
 	$ajxres=array();
@@ -42,7 +43,12 @@ try {
 	global $wpdb;
 	$table = $wpdb->prefix."wpmap";
 try {
+	if ( $pt !='' ) {
+	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish' AND post_type='$pt' ORDER BY colour";
+
+	} else {
 	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish' ORDER BY colour";
+	}
 	$stmt = $db->prepare($sql);
 	$stmt->bindParam(':left', $left, PDO::PARAM_STR);
 	$stmt->bindParam(':right', $right, PDO::PARAM_STR);

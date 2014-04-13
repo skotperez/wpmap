@@ -80,6 +80,7 @@ function wpmap_create_db_table() {
 	$sql = "CREATE TABLE IF NOT EXISTS $table_name (
 	  id bigint(20) NOT NULL AUTO_INCREMENT,
 	  post_id bigint(20) NOT NULL,
+	  post_type varchar(20) NOT NULL,
 	  post_status varchar(20) NOT NULL,
 	  lat double NOT NULL,
 	  lon double NOT NULL,
@@ -122,9 +123,10 @@ function wpmap_geocoding( $post_id ) {
 		$results = json_decode($results_json,TRUE); // if second parameter is set to TRUE, the output is ass. array
 
 		// info to insert in db
+		$post_type = get_post_type( $post_id );
+		$post_status = get_post_status( $post_id );
 		$lat = $results[0]['lat'];
 		$lon = $results[0]['lon'];
-		$post_status = get_post_status( $post_id );
 		$post_layer = get_post_meta( $post_id, WPMAP_LAYER, true );
 
 		// preparing data to insert
@@ -132,6 +134,7 @@ function wpmap_geocoding( $post_id ) {
 		$data = array( 
 			//'id' => is autoincrement
 			'post_id' => $post_id,
+			'post_type' => $post_type,
 			'post_status' => $post_status,
 			'lat' => $lat,
 			'lon' => $lon,
@@ -141,6 +144,7 @@ function wpmap_geocoding( $post_id ) {
 		$format = array(
 			//'%d',
 			'%d',
+			'%s',
 			'%s',
 			'%f',
 			'%f',
@@ -177,4 +181,33 @@ function wpmap_delete_geocoding( $post_id ) {
 
 } // END delete row script
 
+// wpmap shortcode
+add_shortcode('wpmap', 'wpmap_shortcode');
+function wpmap_shortcode($atts) {
+	extract( shortcode_atts( array(
+		'pt' => 'post',
+		'centerLat' => '42.863690',
+		'centerLon' => '1.200625',
+		'initialZoomLevel' => 10, // between 1 and 19
+		'minZoomLevel' => 5,
+		'maxZoomLevel' => 19,
+		'layers' => "'local','regional','national','international'",
+		'colors' => "'#00ff00','#ffff00','#0000ff','#ff0000'",
+		'defaultColor' => "#000000"
+	), $atts ) );
+	echo "
+		<div id='map'></div>
+		<script>
+		var pt = '$pt';
+		var centerLat = '$centerLat';
+		var centerLon = '$centerLon';
+		var initialZoomLevel = $initialZoomLevel;
+		var minZoomLevel = $minZoomLevel;
+		var maxZoomLevel = $maxZoomLevel;
+		var pointLayers = [$layers];
+		var pointColors = [$colors];
+		var pointDefaultColor = '$defaultColor';
+		</script>
+	";
+} // END shortcode
 ?>
