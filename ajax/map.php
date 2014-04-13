@@ -1,4 +1,8 @@
 <?php
+/*
+ * returns map points as geojson 
+ */
+
 // it is not necessary, already loaded
 //require_once($_SERVER['DOCUMENT_ROOT']."/wp-load.php");
 
@@ -6,14 +10,8 @@
 // ini_set('display_errors', 1);
 // error_reporting(E_ALL);
 
-/*
- * ajxplaque.php
- * returns plaque points as geojson 
- */
-
-// get the server credentials from a shared import file
+// get the server credentials
 $idb= $_SERVER['DOCUMENT_ROOT']."/wp-config.php";
-//include $idb;
 require_once($idb);
 
 if (isset($_GET['bbox'])) {
@@ -66,16 +64,8 @@ $features=array(); // array to build up the feature collection
 $ajxres['type']='FeatureCollection';
 
 // go through the list adding each one to the array to be returned	
+$table_posts = $wpdb->prefix."posts";
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-
-//	if ( $post_layer != $row['colour'] ) {
-//		$post_layer = $row['colour'];
-//		$ajxres[$post_layer] = array();
-//		$ajxres[$post_layer] = array();
-//		$ajxres[$post_layer]['type'] = 'FeatureCollection';
-//	} else {
-
-//	}
 
 	$post_layer = $row['colour'];
 
@@ -83,7 +73,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 	$lon = $row['lon'];
 
 	$post_id = $row['post_id'];
-	$dbquery = "SELECT * FROM wp_posts WHERE ID = $post_id";
+	$dbquery = "SELECT * FROM $table_posts WHERE ID = $post_id";
 	$post_info = $wpdb->get_row($dbquery,ARRAY_A);
 
 	$post_tit = $post_info['post_title'];

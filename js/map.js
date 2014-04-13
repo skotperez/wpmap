@@ -1,9 +1,15 @@
 /* EDIT MAP VARS */
+
+// center of the map
 var centerLat = "42.863690";
 var centerLon = "1.200625";
+
+// zoom
 var initialZoomLevel = 10; // between 1 and 19
 var minZoomLevel = 5; // between 1 and 19
 var maxZoomLevel = 19; // between 1 and 19
+
+// layers names and colors
 var pointLayers = [
 	"local",
 	"regional",
