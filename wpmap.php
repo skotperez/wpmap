@@ -6,28 +6,61 @@ Version: 0.1
 Author: montera34
 Author URI: http://montera34.com
 License: GPLv2+
-* To Do:
-	+ ...
 */
 
-	/* EDIT THIS VARS TO SUIT YOUR THEME */
-	// be sure to change 'city' and 'country' for your custom fields
+
+/* EDIT THIS VARS TO CONFIG THE PLUGIN */
+$wpmap_city = "city"; // the custom field that stores city
+$wpmap_city2 = "city2"; // if you want to have two city custom fields
+$wpmap_country = "country"; // the custom field that stores country
+$wpmap_country2 = "country2"; // if you want to have two city custom fields
+$default_pt = "post"; // default post type to show in the map
+$default_start_lat = '42.863690'; // default latitude for map center
+$default_start_lon = '1.200625'; // default longitude for map center
+$default_zoom_level = 10; // default initial zoom level: between 1 and 19
+$default_min_zoom = 5; // default minimal (farest) zoom level: between 1 and 19
+$default_max_zoom = 19; // default maximal (closer) zoom level: between 1 and 19
+$default_map_layers = "'local','regional','national','international'"; // default layers: respect " and '. no limit
+$default_layers_colors = "'#00ff00','#ffff00','#0000ff','#ff0000'"; // default color for each layer above, in order.
+/* STOP EDIT */
+
+
 	if (!defined('WPMAP_CITY'))
-	    define('WPMAP_CITY', 'city');
+	    define('WPMAP_CITY', $wpmap_city);
+
 	if (!defined('WPMAP_CITY2'))
-	    define('WPMAP_CITY2', 'city2');
+	    define('WPMAP_CITY2', $wpmap_city2);
 
 	if (!defined('WPMAP_COUNTRY'))
-	    define('WPMAP_COUNTRY', 'country');
+	    define('WPMAP_COUNTRY', $wpmap_country);
+
 	if (!defined('WPMAP_COUNTRY2'))
-	    define('WPMAP_COUNTRY2', 'country2');
+	    define('WPMAP_COUNTRY2', $wpmap_country2);
 
+	if (!defined('WPMAP_PT'))
+	    define('WPMAP_PT', $default_pt);
 
-	// be sure to change 'layer' for the name for the custom field that will define the layer
-	if (!defined('WPMAP_LAYER'))
-	    define('WPMAP_LAYER', 'layer');
-	/* STOP EDIT */
-	
+	if (!defined('WPMAP_MAP_LAT'))
+	    define('WPMAP_MAP_LAT', $default_start_lat);
+
+	if (!defined('WPMAP_MAP_LON'))
+	    define('WPMAP_MAP_LON', $default_start_lon);
+
+	if (!defined('WPMAP_INI_ZOOM'))
+	    define('WPMAP_INI_ZOOM', $default_zoom_level);
+
+	if (!defined('WPMAP_MIN_ZOOM'))
+	    define('WPMAP_MIN_ZOOM', $default_min_zoom);
+
+	if (!defined('WPMAP_MAX_ZOOM'))
+	    define('WPMAP_MAX_ZOOM', $default_max_zoom);
+
+	if (!defined('WPMAP_LAYERS'))
+	    define('WPMAP_LAYERS', $default_map_layers);
+
+	if (!defined('WPMAP_LAYERS_COLORS'))
+	    define('WPMAP_LAYERS_COLORS', $default_layers_colors);
+
 
 	/* Load map JavaScript and styles */
 	add_action( 'wp_enqueue_scripts', 'wpmap_scripts_styles' );
@@ -185,14 +218,14 @@ function wpmap_delete_geocoding( $post_id ) {
 add_shortcode('wpmap', 'wpmap_shortcode');
 function wpmap_shortcode($atts) {
 	extract( shortcode_atts( array(
-		'pt' => 'post',
-		'centerLat' => '42.863690',
-		'centerLon' => '1.200625',
-		'initialZoomLevel' => 10, // between 1 and 19
-		'minZoomLevel' => 5,
-		'maxZoomLevel' => 19,
-		'layers' => "'local','regional','national','international'",
-		'colors' => "'#00ff00','#ffff00','#0000ff','#ff0000'",
+		'pt' => WPMAP_PT,
+		'centerLat' => WPMAP_MAP_LAT,
+		'centerLon' => WPMAP_MAP_LON,
+		'initialZoomLevel' => WPMAP_INI_ZOOM,
+		'minZoomLevel' => WPMAP_MIN_ZOOM,
+		'maxZoomLevel' => WPMAP_MAX_ZOOM,
+		'layers' => WPMAP_LAYERS,
+		'colors' => WPMAP_LAYERS_COLORS,
 		'defaultColor' => "#000000"
 	), $atts ) );
 	echo "
@@ -210,4 +243,30 @@ function wpmap_shortcode($atts) {
 		</script>
 	";
 } // END shortcode
+
+// show map function
+function wpmap_showmap( $args ) {
+	$parameters = array("pt","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","layers","colors","default_color");
+	$defaults = array(WPMAP_PT,WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,WPMAP_LAYERS,WPMAP_LAYERS_COLORS,"#000000");
+	$count = 0;
+	foreach ( $parameters as $parameter ) {
+		if ( $args[$parameter] == null ) { $args[$parameter] = $defaults[$count]; }
+		$count++;
+	}
+	$the_map = "
+		<div id='map'></div>
+		<script>
+		var pt = '{$args['pt']}';
+		var centerLat = '{$args['center_lat']}';
+		var centerLon = '{$args['center_lon']}';
+		var initialZoomLevel = {$args['zoom_ini']};
+		var minZoomLevel = {$args['zoom_min']};
+		var maxZoomLevel = {$args['zoom_max']};
+		var pointLayers = [{$args['layers']}];
+		var pointColors = [{$args['colors']}];
+		var pointDefaultColor = '{$args['default_color']}';
+		</script>
+	";
+	echo $the_map;
+} // END show map function
 ?>
