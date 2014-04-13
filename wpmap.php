@@ -14,9 +14,14 @@ License: GPLv2+
 	// be sure to change 'city' and 'country' for your custom fields
 	if (!defined('WPMAP_CITY'))
 	    define('WPMAP_CITY', 'city');
+	if (!defined('WPMAP_CITY2'))
+	    define('WPMAP_CITY2', 'city2');
 
 	if (!defined('WPMAP_COUNTRY'))
 	    define('WPMAP_COUNTRY', 'country');
+	if (!defined('WPMAP_COUNTRY2'))
+	    define('WPMAP_COUNTRY2', 'country2');
+
 
 	// be sure to change 'layer' for the name for the custom field that will define the layer
 	if (!defined('WPMAP_LAYER'))
@@ -103,6 +108,12 @@ function wpmap_geocoding( $post_id ) {
 	// get post city and country
 	$city = urlencode(get_post_meta( $post_id, WPMAP_CITY, true ));
 	$country = urlencode(get_post_meta( $post_id, WPMAP_COUNTRY, true ));
+	if ( $city == '' ) {
+		$city = urlencode(get_post_meta( $post_id, WPMAP_CITY2, true ));
+	}
+	if ( $country == '' ) {
+		$country = urlencode(get_post_meta( $post_id, WPMAP_COUNTRY2, true ));
+	}
 
 	if ( $city != '' || $country != '' ) {
 
