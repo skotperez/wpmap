@@ -5,6 +5,7 @@
 
 // it is not necessary, already loaded
 //require_once($_SERVER['DOCUMENT_ROOT']."/wp-load.php");
+//require($_SERVER['DOCUMENT_ROOT']."/wp-load.php");
 
 // uncomment below to turn error reporting on
 // ini_set('display_errors', 1);
@@ -44,7 +45,7 @@ try {
 	$table = $wpdb->prefix."wpmap";
 try {
 	if ( $pt == '' ) {
-	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish' ORDER BY colour";
+	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish'";
 	} else {
 	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish' AND post_type='$pt'";
 	}

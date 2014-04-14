@@ -18,10 +18,15 @@ function init() {
 		attribution: osmAttrib
 	});
 
+	var popupStyle = {
+		maxHeight: 300,
+		zoomAnimation: false
+	}
+
 	function onEachFeature(feature, layer) {
 		var popupContent = feature.properties.plaquedesc;
 
-		layer.bindPopup(popupContent);
+		layer.bindPopup(popupContent,popupStyle);
 	}
 	
 	// a geojson layer
@@ -79,6 +84,7 @@ function setIcon(feature) {
 	    opacity: 1,
 	    fillOpacity: 0.8
 	};
+	console.log(pointStyle);
 	jQuery.each( pointLayers, function ( i,layer ) {
 		if (feature.properties.colour==layer) {
 			colorHex = pointColors[i];
@@ -97,7 +103,7 @@ function setIcon(feature) {
 function askForPlaques() {
 	var data='bbox=' + map.getBounds().toBBoxString() + '&pt=' + pt;
 	jQuery.ajax({
-		url: '/wp-content/plugins/wpmap/ajax/map.php',
+		url: ajaxUrl,
 		dataType: 'json',
 		data: data,
 		success: showPlaques

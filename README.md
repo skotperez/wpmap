@@ -49,3 +49,7 @@ This functions accepts the same parameters than the shorcode above. All of them 
 	'colors' => "'red','blue'"
 );`
 `wpmap_showmap($args);`
+
+## What you cannot do with this plugin
++ Insert a map in a popup. Because of that if you use wpmap shortcode in the content of a post that you'll see in other map, the plugin will not work.
++ Show more than one selected post types in the same map. You can show just one post type or all of them.

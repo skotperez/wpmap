@@ -10,6 +10,7 @@ License: GPLv2+
 
 
 /* EDIT THIS VARS TO CONFIG THE PLUGIN */
+$ajax_script_path = "wp-content/plugins/wpmap/ajax/map.php"; // depending on your server configuration you must add a / in the beginning
 $wpmap_city = "city"; // the custom field that stores city
 $wpmap_city2 = "city2"; // if you want to have two city custom fields
 $wpmap_country = "country"; // the custom field that stores country
@@ -64,6 +65,9 @@ $default_layers_colors = "'#00ff00','#ffff00','#0000ff','#ff0000'"; // default c
 
 	if (!defined('WPMAP_LAYERS_COLORS'))
 	    define('WPMAP_LAYERS_COLORS', $default_layers_colors);
+
+	if (!defined('WPMAP_AJAX'))
+	    define('WPMAP_AJAX', $ajax_script_path);
 
 
 	/* Load map JavaScript and styles */
@@ -230,7 +234,7 @@ function wpmap_shortcode($atts) {
 		'maxZoomLevel' => WPMAP_MAX_ZOOM,
 		'layers' => WPMAP_LAYERS,
 		'colors' => WPMAP_LAYERS_COLORS,
-		'defaultColor' => "#000000"
+		'defaultColor' => "#000000",
 	), $atts ) );
 	echo "
 		<div id='map'></div>
@@ -244,14 +248,15 @@ function wpmap_shortcode($atts) {
 		var pointLayers = [$layers];
 		var pointColors = [$colors];
 		var pointDefaultColor = '$defaultColor';
+		var ajaxUrl = WPMAP_AJAX;
 		</script>
 	";
 } // END shortcode
 
 // show map function
 function wpmap_showmap( $args ) {
-	$parameters = array("pt","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","layers","colors","default_color");
-	$defaults = array(WPMAP_PT,WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,WPMAP_LAYERS,WPMAP_LAYERS_COLORS,"#000000");
+	$parameters = array("pt","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","layers","colors","default_color","ajax_url");
+	$defaults = array(WPMAP_PT,WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,WPMAP_LAYERS,WPMAP_LAYERS_COLORS,"#000000",WPMAP_AJAX);
 	$count = 0;
 	foreach ( $parameters as $parameter ) {
 		if ( $args[$parameter] == null ) { $args[$parameter] = $defaults[$count]; }
@@ -269,6 +274,7 @@ function wpmap_showmap( $args ) {
 		var pointLayers = [{$args['layers']}];
 		var pointColors = [{$args['colors']}];
 		var pointDefaultColor = '{$args['default_color']}';
+		var ajaxUrl = '{$args['ajax_url']}';
 		</script>
 	";
 	echo $the_map;
