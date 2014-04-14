@@ -102,6 +102,7 @@ function askForPlaques() {
 		data: data,
 		success: showPlaques
 	});
+	console.log(data);
 }
 
 function showPlaques(ajxresponse) {

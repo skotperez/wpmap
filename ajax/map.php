@@ -43,11 +43,10 @@ try {
 	global $wpdb;
 	$table = $wpdb->prefix."wpmap";
 try {
-	if ( $pt !='' ) {
-	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish' AND post_type='$pt' ORDER BY colour";
-
-	} else {
+	if ( $pt == '' ) {
 	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish' ORDER BY colour";
+	} else {
+	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish' AND post_type='$pt'";
 	}
 	$stmt = $db->prepare($sql);
 	$stmt->bindParam(':left', $left, PDO::PARAM_STR);
