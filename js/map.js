@@ -97,7 +97,7 @@ function setIcon(feature) {
 function askForPlaques() {
 	var data='bbox=' + map.getBounds().toBBoxString() + '&pt=' + pt;
 	jQuery.ajax({
-		url: 'wp-content/plugins/wpmap/ajax/map.php',
+		url: '/wp-content/plugins/wpmap/ajax/map.php',
 		dataType: 'json',
 		data: data,
 		success: showPlaques
