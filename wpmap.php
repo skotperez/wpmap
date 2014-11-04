@@ -65,7 +65,6 @@ $default_layers_colors = "'#00ff00','#ffff00','#0000ff','#ff0000'"; // default c
 	if (!defined('WPMAP_LAYERS_COLORS'))
 	    define('WPMAP_LAYERS_COLORS', $default_layers_colors);
 
-	//$ajax_script_path = "wp-content/plugins/wpmap/ajax/map.php"; // depending on your server configuration you must add a / in the beginning
 	if (!defined('WPMAP_AJAX'))
 	    define('WPMAP_AJAX', plugins_url( 'ajax/map.php' , __FILE__));
 
@@ -74,8 +73,8 @@ $default_layers_colors = "'#00ff00','#ffff00','#0000ff','#ff0000'"; // default c
 	add_action( 'wp_enqueue_scripts', 'wpmap_scripts_styles' );
 
 	// get coordinates from OSM when a post is created or saved
+	// the action to hook the geocoding must be save_post (not wp_insert_post) to keep geodata updated
 	add_action( 'save_post', 'wpmap_geocoding' );
-	//add_action( 'wp_insert_post', 'wpmap_geocoding' );
 
 	// delete row from wp_wpmap when a post is permanently deleted
 	add_action('deleted_post', 'wpmap_delete_geocoding');

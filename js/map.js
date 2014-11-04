@@ -18,6 +18,7 @@ function init() {
 		attribution: osmAttrib
 	});
 
+	// popup general styles
 	var popupStyle = {
 		maxHeight: 300,
 		zoomAnimation: false
@@ -25,11 +26,10 @@ function init() {
 
 	function onEachFeature(feature, layer) {
 		var popupContent = feature.properties.plaquedesc;
-
 		layer.bindPopup(popupContent,popupStyle);
 	}
 	
-	// a geojson layer
+	// geojson layer
 	lyrPlq = L.geoJson(null, {
 		// marker style
 		style: setIcon,
@@ -84,7 +84,7 @@ function setIcon(feature) {
 	    opacity: 1,
 	    fillOpacity: 0.8
 	};
-	console.log(pointStyle);
+	//console.log(pointStyle);
 	jQuery.each( pointLayers, function ( i,layer ) {
 		if (feature.properties.colour==layer) {
 			colorHex = pointColors[i];
@@ -101,7 +101,7 @@ function setIcon(feature) {
 }
 
 function askForPlaques() {
-	var data='bbox=' + map.getBounds().toBBoxString() + '&pt=' + pt;
+	var data='bbox=' + map.getBounds().toBBoxString() + '&pt=' + pt + '&layers=' + pointLayers;
 	jQuery.ajax({
 		url: ajaxUrl,
 		dataType: 'json',

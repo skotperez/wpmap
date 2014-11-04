@@ -15,8 +15,9 @@
 $idb= $_SERVER['DOCUMENT_ROOT']."/wp-config.php";
 require_once($idb);
 
-if (array_key_exists('bbox', $_GET) {
+if (array_key_exists('bbox', $_GET) ) {
 	$bbox = sanitize_text_field($_GET['bbox']);
+
 } else {
 	// invalid request
 	$ajxres=array();
@@ -29,6 +30,25 @@ if (array_key_exists('bbox', $_GET) {
 list($left,$bottom,$right,$top)=explode(",",$bbox);
 
 if ( array_key_exists('pt', $_GET) ) { $pt = sanitize_text_field($_GET['pt']); } else { $pt = ""; }
+if ( array_key_exists('layers', $_GET) ) { $layers = sanitize_text_field($_GET['layers']); } else { $layers = ""; }
+
+// build sql query extra parameters
+if ( $pt != '' ) {
+	$sql_pt = " AND post_type='$pt'";
+} else {
+	$sql_pt = "";
+}
+if ( $layers != '' ) {
+	$sql_layers = " AND (";
+	foreach ( explode(",",$layers) as $layer ) {
+		$sql_layers .= "colour='$layer' OR ";
+	}
+	$sql_layers = substr($sql_layers, 0, -4);
+	$sql_layers .= ")";
+} else {
+	$sql_layers = "";
+}
+$sql_extra = $sql_pt.$sql_layers;
 
 // open the database
 try {
@@ -45,11 +65,7 @@ try {
 	global $wpdb;
 	$table = $wpdb->prefix."wpmap";
 try {
-	if ( $pt == '' ) {
-	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish'";
-	} else {
-	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish' AND post_type='$pt'";
-	}
+	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish'$sql_extra";
 	$stmt = $db->prepare($sql);
 	$stmt->bindParam(':left', $left, PDO::PARAM_STR);
 	$stmt->bindParam(':right', $right, PDO::PARAM_STR);
