@@ -74,8 +74,8 @@ $default_layers_colors = "'#00ff00','#ffff00','#0000ff','#ff0000'"; // default c
 	add_action( 'wp_enqueue_scripts', 'wpmap_scripts_styles' );
 
 	// get coordinates from OSM when a post is created or saved
-	//add_action( 'save_post', 'wpmap_geocoding' );
-	add_action( 'wp_insert_post', 'wpmap_geocoding' );
+	add_action( 'save_post', 'wpmap_geocoding' );
+	//add_action( 'wp_insert_post', 'wpmap_geocoding' );
 
 	// delete row from wp_wpmap when a post is permanently deleted
 	add_action('deleted_post', 'wpmap_delete_geocoding');
@@ -168,7 +168,9 @@ function wpmap_geocoding( $post_id ) {
 		$post_status = get_post_status( $post_id );
 		$lat = $results[0]['lat'];
 		$lon = $results[0]['lon'];
-		$post_layer = get_post_meta( $post_id, WPMAP_LAYER, true );
+		$post_layers = get_post_meta( $post_id, WPMAP_LAYER, true );
+		if ( is_array($post_layers) ) { $post_layer = $post_layers[0]; }
+		else { $post_layer = $post_layers; }
 
 		// preparing data to insert
 		$table = $wpdb->prefix . "wpmap"; 
@@ -248,7 +250,7 @@ function wpmap_shortcode($atts) {
 		var pointLayers = [$layers];
 		var pointColors = [$colors];
 		var pointDefaultColor = '$defaultColor';
-		var ajaxUrl = WPMAP_AJAX;
+		var ajaxUrl = '".WPMAP_AJAX."';
 		</script>
 	";
 } // END shortcode
