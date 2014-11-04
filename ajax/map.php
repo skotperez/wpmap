@@ -15,9 +15,8 @@
 $idb= $_SERVER['DOCUMENT_ROOT']."/wp-config.php";
 require_once($idb);
 
-if (isset($_GET['bbox'])) {
-	$bbox=$_GET['bbox'];
-	$pt = $_GET['pt'];
+if (array_key_exists('bbox', $_GET) {
+	$bbox = sanitize_text_field($_GET['bbox']);
 } else {
 	// invalid request
 	$ajxres=array();
@@ -28,6 +27,8 @@ if (isset($_GET['bbox'])) {
 }
 // split the bbox into it's parts
 list($left,$bottom,$right,$top)=explode(",",$bbox);
+
+if ( array_key_exists('pt', $_GET) ) { $pt = sanitize_text_field($_GET['pt']); } else { $pt = ""; }
 
 // open the database
 try {
