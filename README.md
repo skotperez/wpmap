@@ -1,7 +1,7 @@
 wpmap
 =====
 
-wpmap plugin let you show in a map posts and other custom post types.
+wpmap plugin let you show in a map posts and other custom post types in your Wordpress posts and pages.
 
 wpmap use OpenStreetMaps and Leaflet.
 
@@ -9,13 +9,23 @@ This is a very alpha version of wpmap. Things to be considered:
 
 + Many things cannot work.
 + This plugin may not suite your needs.
-+ To make it works you may need to make any changes in your theme.
++ To make it work you may need to make changes in your theme.
 
 ## Basic configuration
 
 + Upload the plugin to your plugins folder and activate it.
-+ Set up the variables in the begining of wpmap/wpmap.php file.
++ Set up the variables in wpmap/wpmap-config.php file.
 + Customize the styles of the map in wpmap/style/map.css
+
+## How does it work?
+Every time you save a post (or Custom Post Type) with the Custom Fields properly filled (in the default example: "city" and "country") the plugin will geocode the location and store: longitude, latitde, layer (custom meta field value) in the database.
+Once the geocode has worked properly and the location is stored (latitude and latitude) in the database and it will appear in the map.
+
+Trick: you can update all your posts at once from the WordPress post admin.
+
+1. Select all your posts.
+2. Select "Edit" and "Apply".
+3. Click "update" without changing anything.
 
 ## Showing the map with the shortcode
 If you to show the map inside the content of your post or pages, you can include the wpmap shortcode:
