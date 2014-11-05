@@ -1,9 +1,7 @@
 <?php
 /* EDIT THIS VARS TO CONFIG THE PLUGIN */
 $wpmap_city = "city"; // the custom field that stores city
-$wpmap_city2 = "city2"; // if you want to have two city custom fields
 $wpmap_country = "country"; // the custom field that stores country
-$wpmap_country2 = "country2"; // if you want to have two city custom fields
 $default_pt = "post"; // default post type to show in the map
 $default_start_lat = '42.863690'; // default latitude for map center
 $default_start_lon = '1.200625'; // default longitude for map center

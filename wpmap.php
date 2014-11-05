@@ -13,14 +13,8 @@ include "wpmap-config.php";
 	if (!defined('WPMAP_CITY'))
 	    define('WPMAP_CITY', $wpmap_city);
 
-	if (!defined('WPMAP_CITY2'))
-	    define('WPMAP_CITY2', $wpmap_city2);
-
 	if (!defined('WPMAP_COUNTRY'))
 	    define('WPMAP_COUNTRY', $wpmap_country);
-
-	if (!defined('WPMAP_COUNTRY2'))
-	    define('WPMAP_COUNTRY2', $wpmap_country2);
 
 	if (!defined('WPMAP_LAYER'))
 	    define('WPMAP_LAYER', $wpmap_layer);
@@ -133,13 +127,6 @@ function wpmap_geocoding( $post_id ) {
 	// get post city and country
 	$city = urlencode(get_post_meta( $post_id, WPMAP_CITY, true ));
 	$country = urlencode(get_post_meta( $post_id, WPMAP_COUNTRY, true ));
-	if ( $city == '' ) {
-		$city = urlencode(get_post_meta( $post_id, WPMAP_CITY2, true ));
-	}
-	if ( $country == '' ) {
-		$country = urlencode(get_post_meta( $post_id, WPMAP_COUNTRY2, true ));
-	}
-
 	if ( $city != '' || $country != '' ) {
 
 		// use nominatim geocoding service to get coords
