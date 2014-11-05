@@ -29,26 +29,32 @@ if (array_key_exists('bbox', $_GET) ) {
 // split the bbox into it's parts
 list($left,$bottom,$right,$top)=explode(",",$bbox);
 
+// build sql query extra parameters
 if ( array_key_exists('pt', $_GET) ) { $pt = sanitize_text_field($_GET['pt']); } else { $pt = ""; }
 if ( array_key_exists('layers', $_GET) ) { $layers = sanitize_text_field($_GET['layers']); } else { $layers = ""; }
+if ( array_key_exists('groups', $_GET) ) { $groups = sanitize_text_field($_GET['groups']); } else { $groups = ""; }
+$extras = array(
+	'post_type' => $pt,
+	'colour' => $layers,
+	'layer_group' => $groups
+);
 
-// build sql query extra parameters
-if ( $pt != '' ) {
-	$sql_pt = " AND post_type='$pt'";
-} else {
-	$sql_pt = "";
-}
-if ( $layers != '' ) {
-	$sql_layers = " AND (";
-	foreach ( explode(",",$layers) as $layer ) {
-		$sql_layers .= "colour='$layer' OR ";
+$sql_extras = "";
+foreach ( $extras as $colum => $extra ) {
+//if ( $pt != '' ) { $sql_pt = " AND post_type='$pt'"; }
+//else { $sql_pt = ""; }
+
+if ( $extra != '' ) {
+	$sql_extra = " AND $colum IN (";
+	foreach ( explode(",",$extra) as $layer ) {
+		$sql_extra .= "'$layer', ";
 	}
-	$sql_layers = substr($sql_layers, 0, -4);
-	$sql_layers .= ")";
-} else {
-	$sql_layers = "";
-}
-$sql_extra = $sql_pt.$sql_layers;
+	$sql_extra = substr($sql_extra, 0, -2);
+	$sql_extra .= ")";
+} else { $sql_extra = ""; }
+
+$sql_extras .= $sql_extra;
+} // end foreach extra sql parametres
 
 // open the database
 try {
@@ -65,7 +71,7 @@ try {
 	global $wpdb;
 	$table = $wpdb->prefix."wpmap";
 try {
-	$sql="SELECT post_id,lat,lon,colour,imageid FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish'$sql_extra";
+	$sql="SELECT post_id,lat,lon,colour,layer_group FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish'$sql_extras";
 	$stmt = $db->prepare($sql);
 	$stmt->bindParam(':left', $left, PDO::PARAM_STR);
 	$stmt->bindParam(':right', $right, PDO::PARAM_STR);
@@ -110,7 +116,6 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 	$prop['plaquedesc'] = "<h3><a href='" .$post_perma. "' title='" .$post_tit. "' rel='bookmark'>" .$post_tit. "</a></h3>" .$post_desc;
 
 	$prop['colour']=$post_layer;
-	//$prop['imageid']=$row['imageid'];
 
 	$f=array();
 	$geom=array();

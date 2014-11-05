@@ -16,8 +16,8 @@ include "wpmap-config.php";
 	if (!defined('WPMAP_COUNTRY'))
 	    define('WPMAP_COUNTRY', $wpmap_country);
 
-	if (!defined('WPMAP_LAYER'))
-	    define('WPMAP_LAYER', $wpmap_layer);
+//	if (!defined('WPMAP_LAYER_GROUPS'))
+//	    define('WPMAP_LAYER_GROUPS', $wpmap_layer_groups);
 
 	if (!defined('WPMAP_PT'))
 	    define('WPMAP_PT', $default_pt);
@@ -37,11 +37,11 @@ include "wpmap-config.php";
 	if (!defined('WPMAP_MAX_ZOOM'))
 	    define('WPMAP_MAX_ZOOM', $default_max_zoom);
 
-	if (!defined('WPMAP_LAYERS'))
-	    define('WPMAP_LAYERS', $default_map_layers);
+//	if (!defined('WPMAP_LAYERS'))
+//	    define('WPMAP_LAYERS', $default_map_layers);
 
-	if (!defined('WPMAP_LAYERS_COLORS'))
-	    define('WPMAP_LAYERS_COLORS', $default_layers_colors);
+//	if (!defined('WPMAP_LAYERS_COLORS'))
+//	    define('WPMAP_LAYERS_COLORS', $default_layers_colors);
 
 	if (!defined('WPMAP_AJAX'))
 	    define('WPMAP_AJAX', plugins_url( 'ajax/map.php' , __FILE__));
@@ -103,7 +103,7 @@ function wpmap_create_db_table() {
 	  lat double NOT NULL,
 	  lon double NOT NULL,
 	  colour varchar(100) NOT NULL,
-	  imageid varchar(20) NOT NULL,
+	  layer_group varchar(100) NOT NULL,
 	  UNIQUE KEY id (id)
 	);";
 
@@ -119,6 +119,7 @@ function wpmap_create_db_table() {
 function wpmap_geocoding( $post_id ) {
 
 	global $wpdb;
+	global $wpmap_layer_groups;
 
 	// If this is just a revision, don't continue
 	if ( wp_is_post_revision( $post_id ) )
@@ -134,50 +135,54 @@ function wpmap_geocoding( $post_id ) {
 		$results = json_decode($results_json,TRUE); // if second parameter is set to TRUE, the output is ass. array
 
 		// info to insert in db
+		$table = $wpdb->prefix . "wpmap"; 
 		$post_type = get_post_type( $post_id );
 		$post_status = get_post_status( $post_id );
 		$lat = $results[0]['lat'];
 		$lon = $results[0]['lon'];
-		$post_layers = get_post_meta( $post_id, WPMAP_LAYER, true );
-		if ( is_array($post_layers) ) { $post_layer = $post_layers[0]; }
-		else { $post_layer = $post_layers; }
 
-		// preparing data to insert
-		$table = $wpdb->prefix . "wpmap"; 
-		$data = array( 
-			//'id' => is autoincrement
-			'post_id' => $post_id,
-			'post_type' => $post_type,
-			'post_status' => $post_status,
-			'lat' => $lat,
-			'lon' => $lon,
-			'colour' => $post_layer,
-			'imageid' => ''
-		);
-		$format = array(
-			//'%d',
-			'%d',
-			'%s',
-			'%s',
-			'%f',
-			'%f',
-			'%s',
-			'%s'
-		); 
+		foreach ( $wpmap_layer_groups as $layer ) {
+			$post_layers = get_post_meta( $post_id, $layer, true );
+			if ( is_array($post_layers) ) { $post_layer = $post_layers[0]; }
+			else { $post_layer = $post_layers; }
 
-		// query to know if there is already a row for this post
-		$dbquery = "SELECT * FROM $table WHERE post_id = $post_id";
-		$sql = $wpdb->get_row($dbquery,ARRAY_A);
-		if ( $sql != null ) {
-			// if yes, update
-			$where = array('post_id' => $post_id );
-			$wpdb->update( $table, $data, $where, $format );
-		} else {
-			// if no, insert
-			$wpdb->insert( $table, $data, $format );
-		}
+			// preparing data to insert
+			$data = array( 
+				//'id' => is autoincrement
+				'post_id' => $post_id,
+				'post_type' => $post_type,
+				'post_status' => $post_status,
+				'lat' => $lat,
+				'lon' => $lon,
+				'colour' => $post_layer,
+				'layer_group' => $layer
+			);
+			$format = array(
+				//'%d',
+				'%d',
+				'%s',
+				'%s',
+				'%f',
+				'%f',
+				'%s',
+				'%s'
+			); 
 
-	}
+			// query to know if there is already a row for this post and this layer (meta key)
+			$dbquery = "SELECT * FROM $table WHERE post_id = $post_id AND layer_group = $layer";
+			$sql = $wpdb->get_row($dbquery,ARRAY_A);
+			if ( $sql != null ) { // if yes, update
+				$where = array(
+					'post_id' => $post_id,
+					'layer_group' => $layer
+				);
+				$wpdb->update( $table, $data, $where, $format );
+			} else { // if no, insert
+				$wpdb->insert( $table, $data, $format );
+			}
+		} // end foreach layers
+
+	} // if city and country are not empty
 
 } // END geocoding script
 
@@ -204,8 +209,9 @@ function wpmap_shortcode($atts) {
 		'initialZoomLevel' => WPMAP_INI_ZOOM,
 		'minZoomLevel' => WPMAP_MIN_ZOOM,
 		'maxZoomLevel' => WPMAP_MAX_ZOOM,
-		'layers' => WPMAP_LAYERS,
-		'colors' => WPMAP_LAYERS_COLORS,
+		'groups' => '',
+		'layers' => '',
+		'colors' => '',
 		'defaultColor' => "#000000",
 	), $atts ) );
 	$the_map = "
@@ -217,6 +223,7 @@ function wpmap_shortcode($atts) {
 		var initialZoomLevel = $initialZoomLevel;
 		var minZoomLevel = $minZoomLevel;
 		var maxZoomLevel = $maxZoomLevel;
+		var layerGroups = [$groups];
 		var pointLayers = [$layers];
 		var pointColors = [$colors];
 		var pointDefaultColor = '$defaultColor';
@@ -228,8 +235,8 @@ function wpmap_shortcode($atts) {
 
 // show map function
 function wpmap_showmap( $args ) {
-	$parameters = array("pt","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","layers","colors","default_color");
-	$defaults = array(WPMAP_PT,WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,WPMAP_LAYERS,WPMAP_LAYERS_COLORS,"#000000");
+	$parameters = array("pt","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","groups","layers","colors","default_color");
+	$defaults = array(WPMAP_PT,WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,"","","","#000000");
 	$count = 0;
 	foreach ( $parameters as $parameter ) {
 		if ( $args[$parameter] == null ) { $args[$parameter] = $defaults[$count]; }
@@ -244,6 +251,7 @@ function wpmap_showmap( $args ) {
 		var initialZoomLevel = {$args['zoom_ini']};
 		var minZoomLevel = {$args['zoom_min']};
 		var maxZoomLevel = {$args['zoom_max']};
+		var layerGroups = [{$args['groups']}];
 		var pointLayers = [{$args['layers']}];
 		var pointColors = [{$args['colors']}];
 		var pointDefaultColor = '{$args['default_color']}';

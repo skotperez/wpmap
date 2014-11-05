@@ -101,7 +101,7 @@ function setIcon(feature) {
 }
 
 function askForPlaques() {
-	var data='bbox=' + map.getBounds().toBBoxString() + '&pt=' + pt + '&layers=' + pointLayers;
+	var data='bbox=' + map.getBounds().toBBoxString() + '&pt=' + pt + '&groups=' + layerGroups + '&layers=' + pointLayers;
 	jQuery.ajax({
 		url: ajaxUrl,
 		dataType: 'json',
