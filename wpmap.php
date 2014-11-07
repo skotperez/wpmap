@@ -141,6 +141,10 @@ function wpmap_geocoding( $post_id ) {
 		$lat = $results[0]['lat'];
 		$lon = $results[0]['lon'];
 
+		// query to know if there is already rows for this post and their layers (meta keys)
+		$dbquery = "SELECT layer_group,colour FROM $table WHERE post_id='$post_id'";
+		$current_layers = $wpdb->get_results($dbquery,OBJECT_K);
+
 		foreach ( $wpmap_layer_groups as $layer ) {
 			$post_layers = get_post_meta( $post_id, $layer, true );
 			if ( is_array($post_layers) ) { $post_layer = $post_layers[0]; }
@@ -167,19 +171,21 @@ function wpmap_geocoding( $post_id ) {
 				'%s',
 				'%s'
 			); 
+			$where = array(
+				'post_id' => $post_id,
+				'layer_group' => $layer
+			);
 
-			// query to know if there is already a row for this post and this layer (meta key)
-			$dbquery = "SELECT * FROM $table WHERE post_id = $post_id AND layer_group = $layer";
-			$sql = $wpdb->get_row($dbquery,ARRAY_A);
-			if ( $sql != null ) { // if yes, update
-				$where = array(
-					'post_id' => $post_id,
-					'layer_group' => $layer
-				);
-				$wpdb->update( $table, $data, $where, $format );
-			} else { // if no, insert
-				$wpdb->insert( $table, $data, $format );
+			if ( array_key_exists($layer,$current_layers) ) { // if there is a row for this layer
+				if ( $post_layer == '' ) { /* delete row */ $wpdb->delete( $table, $where, $where_format = null ); }
+				elseif ( $post_layer == $current_layers[$layer]->colour ) { /* do nothing */ }
+				else { /* update row */ $wpdb->update( $table, $data, $where, $format ); }
+
+			} else { // if there is no row for this layer
+				if ( $post_layer != '' ) { /* create row */ $wpdb->insert( $table, $data, $format ); }
+
 			}
+
 		} // end foreach layers
 
 	} // if city and country are not empty
@@ -193,9 +199,8 @@ function wpmap_delete_geocoding( $post_id ) {
 	global $wpdb;
 	$table = $wpdb->prefix . "wpmap"; 
 	$where = array('post_id' => $post_id );
-
 	// delete
-	$sql = $wpdb->delete( $table, $where, $where_format = null );	
+	$wpdb->delete( $table, $where, $where_format = null );	
 
 } // END delete row script
 
