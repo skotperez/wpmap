@@ -51,19 +51,21 @@ The shortcode with some attributes:
 `[wpmap pt="page" layers="'parent','child'" colors="'red','blue'"]`
 
 ### Example of shortcodes
-Map that displays all the values (points in the map) of one of the custom_field  key configured in wpmap-config.php:
+
+#### Map that displays all the values of one of the custom_field key configured in wpmap-config.php:
 
 `[wpmap groups="'members_occupation'"]`
 
 It will display all the posts (or custom posts types) that have values in the custom field members_occupation. 
+Be aware that it will only work if you have first configured wpmap-config.php with the name of the custom field ($wpmap_layer_groups), and then updated the posts or custom post types.
 
-+ Map with some one or several the values of one or several custom_field keys:
+#### Map with some one or several values of one or several custom_field keys:
 
 `[wpmap layers="'local','waste collectors'"]`
 
 It will display all the posts (or custom posts types) that have values 'local' or 'waste collectors'. 
 
-+ Map will display all the posts from different custom post types:
+#### Map will display all the posts from different custom post types:
 
 `[wpmap pt="'post','page'"]`
 
