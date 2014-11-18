@@ -15,6 +15,9 @@ This is a very alpha version of wpmap. Things to be considered:
 
 + Upload the plugin to your plugins folder and activate it.
 + Set up the variables in wpmap/wpmap-config.php file.
+ + Set the name of the custom fields that store city and country.
+ + Set default post type to be used for the map
+ + Set the default center and zoom level of the map 
 + Customize the styles of the map in wpmap/style/map.css
 
 ## How does it work?
@@ -46,6 +49,25 @@ You can pass the following attributes, all of them optional, to the shortcode:
 The shortcode with some attributes:
 
 `[wpmap pt="page" layers="'parent','child'" colors="'red','blue'"]`
+
+### Example of shortcodes
+Map that displays all the values (points in the map) of one of the custom_field  key configured in wpmap-config.php:
+
+`[wpmap groups="'members_occupation'"]`
+
+It will display all the posts (or custom posts types) that have values in the custom field members_occupation. 
+
++ Map with some one or several the values of one or several custom_field keys:
+
+`[wpmap layers="'local','waste collectors'"]`
+
+It will display all the posts (or custom posts types) that have values 'local' or 'waste collectors'. 
+
++ Map will display all the posts from different custom post types:
+
+`[wpmap pt="'post','page'"]`
+
+It will display all the posts (or custom posts types) from 'post' and 'page' custom post types.
 
 ## Showing the map with the function
 If you want to show the map in any place of your theme, other than the content of a post or page, you can use the wpmap function:
