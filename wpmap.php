@@ -59,6 +59,8 @@ include "wpmap-config.php";
 
 	// create map data table in db
 	register_activation_hook( __FILE__, 'wpmap_create_db_table' );
+	// update wpmap table in db, if there are changes
+	add_action( 'plugins_loaded', 'wpmap_update_db_table' );
 
 
 // Register styles and scripts
@@ -90,28 +92,49 @@ function wpmap_scripts_styles() {
 } // end map scripts and styles
 
 // create map data table in db
-//global $wpmap_db_version;
-//$wpmap_db_version = "0.1";
+global $wpmap_db_version;
+$wpmap_db_version = "0.2";
 function wpmap_create_db_table() {
 	global $wpdb;
+	global $wpmap_db_version;
+
+	$charset_collate = '';
+	if ( ! empty( $wpdb->charset ) ) {
+		$charset_collate = "DEFAULT CHARACTER SET {$wpdb->charset}";
+	}
+	if ( ! empty( $wpdb->collate ) ) {
+		$charset_collate .= " COLLATE {$wpdb->collate}";
+	}
+
 	$table_name = $wpdb->prefix . "wpmap"; 
-	$sql = "CREATE TABLE IF NOT EXISTS $table_name (
-	  id bigint(20) NOT NULL AUTO_INCREMENT,
-	  post_id bigint(20) NOT NULL,
-	  post_type varchar(20) NOT NULL,
-	  post_status varchar(20) NOT NULL,
-	  lat double NOT NULL,
-	  lon double NOT NULL,
-	  colour varchar(100) NOT NULL,
-	  layer_group varchar(100) NOT NULL,
+	$sql = "
+	CREATE TABLE $table_name (
+	  id bigint(20) unsigned NOT NULL auto_increment,
+	  post_id bigint(20) unsigned NOT NULL default '',
+	  post_type varchar(20) NOT NULL default 'post',
+	  post_status varchar(20) NOT NULL default 'publish',
+	  lat double NOT NULL default 0,
+	  lon double NOT NULL default 0,
+	  colour varchar(100) NOT NULL default '',
+	  layer_group varchar(100) NOT NULL default '',
 	  UNIQUE KEY id (id)
-	);";
+	) $charset_collate;
+	";
 
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	dbDelta( $sql );
 
-//	add_option( "wpmap_db_version", $wpmap_db_version );
+	update_option( "wpmap_db_version", $wpmap_db_version );
+	
 } // end create table in db
+
+// update map table in db
+function wpmap_update_db_table() {
+	global $wpmap_db_version;
+	$current_db_version = get_option( "wpmap_db_version" );
+	if ( $wpmap_db_version != $current_db_version ) { wpmap_create_db_table(); }
+
+} // end update map table in db
 
 // Geocoding script using Nominatim http://nominatim.openstreetmap.org/
 // to get coordinates using City, Country and Postal Code of the points
