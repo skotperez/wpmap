@@ -41,25 +41,22 @@ $extras = array(
 
 $sql_extras = "";
 foreach ( $extras as $colum => $extra ) {
-//if ( $pt != '' ) { $sql_pt = " AND post_type='$pt'"; }
-//else { $sql_pt = ""; }
+	if ( $extra != '' ) {
+		$sql_extra = " AND $colum IN (";
+		foreach ( explode(",",$extra) as $layer ) {
+			$sql_extra .= "'$layer', ";
+		}
+		$sql_extra = substr($sql_extra, 0, -2);
+		$sql_extra .= ")";
 
-if ( $extra != '' ) {
-	$sql_extra = " AND $colum IN (";
-	foreach ( explode(",",$extra) as $layer ) {
-		$sql_extra .= "'$layer', ";
-	}
-	$sql_extra = substr($sql_extra, 0, -2);
-	$sql_extra .= ")";
-} else { $sql_extra = ""; }
+	} else { $sql_extra = ""; }
+	$sql_extras .= $sql_extra;
 
-$sql_extras .= $sql_extra;
 } // end foreach extra sql parametres
 
 // open the database
-try {
-	$db = new PDO('mysql:host='.DB_HOST.';dbname='.DB_NAME.';charset=' .DB_CHARSET, DB_USER, DB_PASSWORD);
-} catch(PDOException $e) {
+try { $db = new PDO('mysql:host='.DB_HOST.';dbname='.DB_NAME.';charset=' .DB_CHARSET, DB_USER, DB_PASSWORD); }
+catch(PDOException $e) {
 	// send the PDOException message
 	$ajxres=array();
 	$ajxres['resp']=40;
@@ -68,10 +65,27 @@ try {
 	sendajax($ajxres);
 }
 
-	global $wpdb;
-	$table = $wpdb->prefix."wpmap";
+global $wpdb;
+$table_map = $wpdb->prefix."wpmap";
+$table_posts = $wpdb->prefix."posts";
+$table_limit = $wpdb->prefix."postmeta";
 try {
-	$sql="SELECT post_id,lat,lon,colour,layer_group FROM $table WHERE lon>=:left AND lon<=:right AND lat>=:bottom AND lat<=:top AND post_status='publish'$sql_extras";
+	$sql="
+	SELECT
+	  m.lat,
+	  m.lon,
+	  m.colour,
+	  p.ID,
+	  p.post_title,
+	  p.post_content
+	FROM $table_map m
+	INNER JOIN $table_posts p
+	  ON m.post_id = p.ID
+	WHERE m.lon>=:left AND m.lon<=:right
+	  AND m.lat>=:bottom AND m.lat<=:top
+	  AND m.post_status='publish'
+	  $sql_extras
+	";
 	$stmt = $db->prepare($sql);
 	$stmt->bindParam(':left', $left, PDO::PARAM_STR);
 	$stmt->bindParam(':right', $right, PDO::PARAM_STR);
@@ -87,7 +101,7 @@ try {
 	$ajxres['msg']=$e->getMessage();
 	sendajax($ajxres);
 }
-	
+
 $ajxres=array(); // place to store the geojson result
 $features=array(); // array to build up the feature collection
 $ajxres['type']='FeatureCollection';
@@ -95,27 +109,23 @@ $ajxres['type']='FeatureCollection';
 // go through the list adding each one to the array to be returned	
 $table_posts = $wpdb->prefix."posts";
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-
+//	echo "<pre>";
+//	print_r($row);
+//	echo "</pre>";
 	$post_layer = $row['colour'];
 
 	$lat = $row['lat'];
 	$lon = $row['lon'];
 
-	$post_id = $row['post_id'];
-	$dbquery = "SELECT * FROM $table_posts WHERE ID = $post_id";
-	$post_info = $wpdb->get_row($dbquery,ARRAY_A);
-
-	$post_tit = $post_info['post_title'];
+	$post_id = $row['ID'];
+	$post_tit = $row['post_title'];
 	$post_perma = get_permalink($post_id);
-	$post_desc = apply_filters('the_content', $post_info['post_content']);
+	$post_desc = apply_filters('the_content', $row['post_content']);
 
 	$prop=array();
-	$prop['plaqueid']=$row['post_id'];
-	//$prop['plaquedesc']='This description is not dynamic yet.';
-	//$prop['plaquedesc'] = "<h3>" .$post_info['post_title']. "</h3>" .$post_info['post_content'];
+	$prop['plaqueid'] = $post_id;
 	$prop['plaquedesc'] = "<h3><a href='" .$post_perma. "' title='" .$post_tit. "' rel='bookmark'>" .$post_tit. "</a></h3>" .$post_desc;
-
-	$prop['colour']=$post_layer;
+	$prop['colour'] = $post_layer;
 
 	$f=array();
 	$geom=array();
@@ -131,8 +141,6 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 	$f['properties']=$prop;
 
 	$features[]=$f;
-//	$ajxres[$post_layer]['features'][] = $f;
-	
 
 }
 	
@@ -145,7 +153,7 @@ sendajax($ajxres); // no return from there
 function sendajax($ajx) {
 	// encode the ajx array as json and return it.
 	$encoded = json_encode($ajx);
-//	$encoded = "var groupsToLayers = [" .json_encode($ajx). "];";
 	exit($encoded);
+
 }
 ?>
