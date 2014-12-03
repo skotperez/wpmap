@@ -208,7 +208,7 @@ function wpmap_delete_geocoding( $post_id ) {
 add_shortcode('wpmap', 'wpmap_shortcode');
 function wpmap_shortcode($atts) {
 	extract( shortcode_atts( array(
-		'pt' => WPMAP_PT,
+		'pt' => '',
 		'centerLat' => WPMAP_MAP_LAT,
 		'centerLon' => WPMAP_MAP_LON,
 		'initialZoomLevel' => WPMAP_INI_ZOOM,
@@ -241,7 +241,7 @@ function wpmap_shortcode($atts) {
 // show map function
 function wpmap_showmap( $args ) {
 	$parameters = array("pt","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","groups","layers","colors","default_color");
-	$defaults = array(WPMAP_PT,WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,"","","","#000000");
+	$defaults = array("",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,"","","","#000000");
 	$count = 0;
 	foreach ( $parameters as $parameter ) {
 		if ( $args[$parameter] == null ) { $args[$parameter] = $defaults[$count]; }
