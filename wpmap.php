@@ -138,17 +138,17 @@ function wpmap_update_db_table() {
 function wpmap_geocoding( $post_id ) {
 
 	global $wpdb;
-	global $wpmap_layer_groups;
+//	global $wpmap_layer_groups;
 
 	// If this is just a revision, don't continue
 	if ( wp_is_post_revision( $post_id ) )
 		return;
 
-	// get post city and country
 	$city = urlencode(get_post_meta( $post_id, WPMAP_CITY, true ));
 	$country = urlencode(get_post_meta( $post_id, WPMAP_COUNTRY, true ));
 	if ( $city != '' || $country != '' ) {
 
+		// do geocoding
 		$street_name = urlencode(get_post_meta( $post_id, WPMAP_STREETNAME, true ));
 		$house_number = urlencode(get_post_meta( $post_id, WPMAP_HOUSENUMBER, true ));
 		$postal_code = urlencode(get_post_meta( $post_id, WPMAP_POSTALCODE, true ));
@@ -161,32 +161,23 @@ function wpmap_geocoding( $post_id ) {
 			$results = json_decode($results_json,TRUE); // if second parameter is set to TRUE, the output is ass. array
 		}
 
-		// info to insert in db
+		// do the insert in db
 		$table = $wpdb->prefix . "wpmap"; 
-		$post_type = get_post_type( $post_id );
-		$post_status = get_post_status( $post_id );
+//		$post_type = get_post_type( $post_id );
+//		$post_status = get_post_status( $post_id );
 		$lat = $results[0]['lat'];
 		$lon = $results[0]['lon'];
-
-		// query to know if there is already rows for this post and their layers (meta keys)
-		$dbquery = "SELECT layer_group,colour FROM $table WHERE post_id='$post_id'";
-		$current_layers = $wpdb->get_results($dbquery,OBJECT_K);
-
-		foreach ( $wpmap_layer_groups as $layer ) {
-			$post_layers = get_post_meta( $post_id, $layer, true );
-			if ( is_array($post_layers) ) { $post_layer = $post_layers[0]; }
-			else { $post_layer = $post_layers; }
 
 			// preparing data to insert
 			$data = array( 
 				//'id' => is autoincrement
 				'post_id' => $post_id,
-				'post_type' => $post_type,
-				'post_status' => $post_status,
+				'post_type' => '',
+				'post_status' => '',
 				'lat' => $lat,
 				'lon' => $lon,
-				'colour' => $post_layer,
-				'layer_group' => $layer
+				'colour' => '',
+				'layer_group' => ''
 			);
 			$format = array(
 				//'%d',
@@ -197,23 +188,20 @@ function wpmap_geocoding( $post_id ) {
 				'%f',
 				'%s',
 				'%s'
-			); 
-			$where = array(
-				'post_id' => $post_id,
-				'layer_group' => $layer
 			);
 
-			if ( array_key_exists($layer,$current_layers) ) { // if there is a row for this layer
-				if ( $post_layer == '' ) { /* delete row */ $wpdb->delete( $table, $where, $where_format = null ); }
-				elseif ( $post_layer == $current_layers[$layer]->colour ) { /* do nothing */ }
-				else { /* update row */ $wpdb->update( $table, $data, $where, $format ); }
+		$dbquery = "SELECT post_id FROM $table WHERE post_id='$post_id' LIMIT 1";
+		if ( $wpdb->get_row($dbquery,OBJECT) == NULL && $lat != '' && $lon != '' ) {
+			/* create row */ $wpdb->insert( $table, $data, $format );
 
-			} else { // if there is no row for this layer
-				if ( $post_layer != '' ) { /* create row */ $wpdb->insert( $table, $data, $format ); }
+		} else {
+			$where = array(
+				'post_id' => $post_id
+			);
+			/* update row */ $wpdb->update( $table, $data, $where, $format );
+			if ( $lat == '' || $lon == '' ) { /* delete row */ $wpdb->delete( $table, $where, $where_format = null ); }
 
-			}
-
-		} // end foreach layers
+		} // end if there is no coords for this post id
 
 	} // if city and country are not empty
 
