@@ -90,7 +90,7 @@ function wpmap_scripts_styles() {
 
 // create map data table in db
 global $wpmap_db_version;
-$wpmap_db_version = "0.2";
+$wpmap_db_version = "0.3";
 function wpmap_create_db_table() {
 	global $wpdb;
 	global $wpmap_db_version;
@@ -107,13 +107,9 @@ function wpmap_create_db_table() {
 	$sql = "
 	CREATE TABLE $table_name (
 	  id bigint(20) unsigned NOT NULL auto_increment,
-	  post_id bigint(20) unsigned NOT NULL default '',
-	  post_type varchar(20) NOT NULL default 'post',
-	  post_status varchar(20) NOT NULL default 'publish',
+	  post_id bigint(20) unsigned NOT NULL,
 	  lat double NOT NULL default 0,
 	  lon double NOT NULL default 0,
-	  colour varchar(100) NOT NULL default '',
-	  layer_group varchar(100) NOT NULL default '',
 	  UNIQUE KEY id (id)
 	) $charset_collate;
 	";
@@ -138,7 +134,6 @@ function wpmap_update_db_table() {
 function wpmap_geocoding( $post_id ) {
 
 	global $wpdb;
-//	global $wpmap_layer_groups;
 
 	// If this is just a revision, don't continue
 	if ( wp_is_post_revision( $post_id ) )
@@ -158,13 +153,11 @@ function wpmap_geocoding( $post_id ) {
 
 		if ( !array_key_exists('0',$results) ) {
 			$results_json = file_get_contents("http://nominatim.openstreetmap.org/search?format=json&country=".$country."&city=".$city."&limit=1");
-			$results = json_decode($results_json,TRUE); // if second parameter is set to TRUE, the output is ass. array
+			$results = json_decode($results_json,TRUE);
 		}
 
 		// do the insert in db
 		$table = $wpdb->prefix . "wpmap"; 
-//		$post_type = get_post_type( $post_id );
-//		$post_status = get_post_status( $post_id );
 		$lat = $results[0]['lat'];
 		$lon = $results[0]['lon'];
 
