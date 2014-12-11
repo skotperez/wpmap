@@ -211,7 +211,8 @@ function wpmap_shortcode($atts) {
 		'post_type' => '',
 		'post_status' => 'publish',
 		'meta_key' => '',
-		'meta_values' => '',
+		'meta_value' => '',
+		'term_slug' => '',
 		'centerLat' => WPMAP_MAP_LAT,
 		'centerLon' => WPMAP_MAP_LON,
 		'initialZoomLevel' => WPMAP_INI_ZOOM,
@@ -229,7 +230,8 @@ function wpmap_shortcode($atts) {
 		var pType = '$post_type';
 		var pStatus = '$post_status';
 		var mKeys = '$meta_key';
-		var mValues = '$meta_values';
+		var mValues = '$meta_value';
+		var tSlugs = '$term_slug';
 		var centerLat = '$centerLat';
 		var centerLon = '$centerLon';
 		var initialZoomLevel = $initialZoomLevel;

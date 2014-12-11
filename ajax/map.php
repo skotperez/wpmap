@@ -31,21 +31,23 @@ list($left,$bottom,$right,$top)=explode(",",$bbox);
 
 // SQL QUERY extra param.
 // fields to get
-$fields_extra = "p.post_title, p.post_content";
+$extra_field = "p.post_title, p.post_content";
 // build sql query extra parameters
 $ptype = sanitize_text_field($_GET['post_type']);
 $pstatus = sanitize_text_field($_GET['post_status']);
 $mkeys = sanitize_text_field($_GET['meta_key']);
 $mvalues = sanitize_text_field($_GET['meta_value']);
-$extras = array(
+$tslugs = sanitize_text_field($_GET['term_slug']);
+$filters = array(
 	'post_type' => array('values'=>$ptype,'table'=>'p'),
 	'post_status' => array('values'=>$pstatus,'table'=>'p'),
 	'meta_key' => array('values'=>$mkeys,'table'=>'pm'),
-	'post_status' => array('values'=>$mvalues,'table'=>'pm'),
+	'meta_values' => array('values'=>$mvalues,'table'=>'pm'),
+	'slug' => array('values'=>$tslugs,'table'=>'t'),
 );
 
-$sql_extras = "";
-foreach ( $extras as $colum => $extra ) {
+$extra_where = "";
+foreach ( $filters as $colum => $extra ) {
 	if ( $extra['values'] != '' ) {
 		$sql_extra = " AND {$extra['table']}.$colum IN (";
 		foreach ( explode(",",$extra['values']) as $value ) {
@@ -55,18 +57,35 @@ foreach ( $extras as $colum => $extra ) {
 		$sql_extra .= ")";
 
 	} else { $sql_extra = ""; }
-	$sql_extras .= $sql_extra;
+	$extra_where .= $sql_extra;
 
 } // end foreach extra sql parametres
 
-if ( $mkeys != '' || $mvalues != '' ) {
+if ( $mkeys != '' || $mvalues != '' ) { // if meta keys or meta values filters
 	$table_postmeta = $wpdb->prefix."postmeta";
-	$pm_join = "INNER JOIN $table_postmeta pm ON m.post_id = pm.post_id";
-	$fields_extra .= ", pm.meta_value";
-} else { $pm_join = ''; }
+	$extra_join = "
+	INNER JOIN $table_postmeta pm
+	  ON m.post_id = pm.post_id
+	";
+	$extra_field .= ", pm.meta_value";
 
+} elseif ( $tslugs != '' ) { // if taxonomies or terms filters
+	$table_term_rel = $wpdb->prefix."term_relationships";
+	$table_term_tax = $wpdb->prefix."term_taxonomy";
+	$table_terms = $wpdb->prefix."terms";
+	$extra_join = "
+	INNER JOIN $table_term_rel tr
+	  ON m.post_id = tr.object_id
+	INNER JOIN $table_term_tax tt
+	  ON tr.term_taxonomy_id = tt.term_taxonomy_id
+	INNER JOIN $table_terms t
+	  ON tt.term_id = t.term_id
+	";
+	$extra_field .= ", t.name";
 
-if ( array_key_exists('layers', $_GET) ) { $layers = sanitize_text_field($_GET['layers']); } else { $layers = ""; }
+} else { $extra_join = ''; }
+
+//if ( array_key_exists('layers', $_GET) ) { $layers = sanitize_text_field($_GET['layers']); } else { $layers = ""; }
 
 // open the database
 try { $db = new PDO('mysql:host='.DB_HOST.';dbname='.DB_NAME.';charset=' .DB_CHARSET, DB_USER, DB_PASSWORD); }
@@ -88,15 +107,16 @@ try {
 	  m.lat,
 	  m.lon,
 	  p.ID,
-	  $fields_extra
+	  $extra_field
 	FROM $table_map m
 	INNER JOIN $table_posts p
 	  ON m.post_id = p.ID
-	$pm_join
+	$extra_join
 	WHERE m.lon>=:left AND m.lon<=:right
 	  AND m.lat>=:bottom AND m.lat<=:top
-	  $sql_extras
+	  $extra_where
 	";
+
 	$stmt = $db->prepare($sql);
 	$stmt->bindParam(':left', $left, PDO::PARAM_STR);
 	$stmt->bindParam(':right', $right, PDO::PARAM_STR);
@@ -119,9 +139,7 @@ $ajxres=array(); // place to store the geojson result
 $features=array(); // array to build up the feature collection
 $ajxres['type']='FeatureCollection';
 
-
 // go through the list adding each one to the array to be returned	
-//$table_posts = $wpdb->prefix."posts";
 $count = 0;
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 //$count++;
@@ -141,11 +159,11 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 //	$post_perma = get_permalink($post_id);
 	$post_desc = apply_filters('the_content', $row['post_content']);
 //	$post_meta_value = $row['meta_value'];
-	$post_meta_value = "";
+	$post_meta_value = $row['name'];
 	$prop=array();
 //	$prop['plaqueid'] = $post_id;
 	//$prop['plaquedesc'] = "<h3><a href='" .$post_perma. "' title='" .$post_tit. "' rel='bookmark'>" .$post_tit. "</a></h3>" .$post_desc;
-	$prop['plaquedesc'] = $post_tit. " " .$post_meta_value;
+	$prop['plaquedesc'] = $post_tit. " " .$post_meta_value. " " .$post_desc;
 	//$prop['colour'] = $post_layer;
 
 	$f=array();

@@ -100,7 +100,7 @@ function setIcon(feature) {
 }
 
 function askForPlaques() {
-	var data='bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&meta_key=' + mKeys + '&meta_value=' + mValues;
+	var data='bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&meta_key=' + mKeys + '&meta_value=' + mValues + '&term_slug=' + tSlugs;
 	jQuery.ajax({
 		url: ajaxUrl,
 		dataType: 'json',
