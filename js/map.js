@@ -84,23 +84,23 @@ function setIcon(feature) {
 	    fillOpacity: 0.8
 	};
 
-	jQuery.each( pointLayers, function ( i,layer ) {
-		if (feature.properties.colour==layer) {
-			colorHex = pointColors[i];
+	jQuery.each( layers, function ( i,layer ) {
+		if (feature.properties.layer==layer) {
+			colorHex = colors[i];
 			pointStyle.fillColor = colorHex,
 			pointStyle.color = colorHex
 			return false; // this break out of the each
 		}
 	});
 	if ( !pointStyle.color ) {
-		pointStyle.color = pointDefaultColor;
-		pointStyle.fillcolor = pointDefaultColor;
+		pointStyle.color = defaultColor;
+		pointStyle.fillcolor = defaultColor;
 	}
 	return pointStyle;
 }
 
 function askForPlaques() {
-	var data='bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&meta_key=' + mKeys + '&meta_value=' + mValues + '&term_slug=' + tSlugs;
+	var data='bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&meta_key=' + mKeys + '&meta_value=' + mValues + '&term_slug=' + tSlugs + '&layers_by=' + layersBy;
 	jQuery.ajax({
 		url: ajaxUrl,
 		dataType: 'json',

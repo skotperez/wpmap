@@ -208,40 +208,44 @@ function wpmap_delete_geocoding( $post_id ) {
 add_shortcode('wpmap', 'wpmap_shortcode');
 function wpmap_shortcode($atts) {
 	extract( shortcode_atts( array(
-		'post_type' => '',
-		'post_status' => 'publish',
-		'meta_key' => '',
-		'meta_value' => '',
-		'term_slug' => '',
+		// map vars
 		'centerLat' => WPMAP_MAP_LAT,
 		'centerLon' => WPMAP_MAP_LON,
 		'initialZoomLevel' => WPMAP_INI_ZOOM,
 		'minZoomLevel' => WPMAP_MIN_ZOOM,
 		'maxZoomLevel' => WPMAP_MAX_ZOOM,
-		'groups' => '',
+		// query filters
+		'post_type' => '',
+		'post_status' => 'publish',
+		'meta_key' => '',
+		'meta_value' => '',
+		'term_slug' => '',
+		// layers
+		'layers_by' => '',
 		'layers' => '',
 		'colors' => '',
-		'defaultColor' => "#000000",
-		'meta_value' => '',
+		'defaultColor' => "#fff100",
 	), $atts ) );
+	$layers = "'".str_replace(",","','",$layers)."'";
+	$colors = "'".str_replace(",","','",$colors)."'";
 	$the_map = "
 		<div id='map'></div>
 		<script>
-		var pType = '$post_type';
-		var pStatus = '$post_status';
-		var mKeys = '$meta_key';
-		var mValues = '$meta_value';
-		var tSlugs = '$term_slug';
 		var centerLat = '$centerLat';
 		var centerLon = '$centerLon';
 		var initialZoomLevel = $initialZoomLevel;
 		var minZoomLevel = $minZoomLevel;
 		var maxZoomLevel = $maxZoomLevel;
-		var layerGroups = [$groups];
-		var pointLayers = [$layers];
-		var pointColors = [$colors];
-		var pointDefaultColor = '$defaultColor';
 		var ajaxUrl = '".WPMAP_AJAX."';
+		var pType = '$post_type';
+		var pStatus = '$post_status';
+		var mKeys = '$meta_key';
+		var mValues = '$meta_value';
+		var tSlugs = '$term_slug';
+		var layersBy = '$layers_by';
+		var layers = [$layers];
+		var colors = [$colors];
+		var defaultColor = '$defaultColor';
 		</script>
 	";
 	return $the_map;

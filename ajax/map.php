@@ -69,7 +69,7 @@ if ( $mkeys != '' || $mvalues != '' ) { // if meta keys or meta values filters
 	";
 	$extra_field .= ", pm.meta_value";
 
-} elseif ( $tslugs != '' ) { // if taxonomies or terms filters
+} elseif ( $tslugs != '' ) { // if terms filters
 	$table_term_rel = $wpdb->prefix."term_relationships";
 	$table_term_tax = $wpdb->prefix."term_taxonomy";
 	$table_terms = $wpdb->prefix."terms";
@@ -83,8 +83,38 @@ if ( $mkeys != '' || $mvalues != '' ) { // if meta keys or meta values filters
 	";
 	$extra_field .= ", t.name";
 
+//} elseif ( $taxs != '' ) { // if taxonomies filters
+//	$table_term_rel = $wpdb->prefix."term_relationships";
+//	$table_term_tax = $wpdb->prefix."term_taxonomy";
+//	$extra_join = "
+//	INNER JOIN $table_term_rel tr
+//	  ON m.post_id = tr.object_id
+//	INNER JOIN (
+//		SELECT term_taxonomy_id, taxonomy FROM $table_term_tax LIMIT 1) AS tt
+//	  ON tr.term_taxonomy_id = tt.term_taxonomy_id
+//	";
+////SELECT IDadd,MIN(Name) Name FROM TABLE2 GROUP BY IDadd) AS B
+////ON B.IDadd = A.ID
+////	  ON tr.term_taxonomy_id = (
+////		SELECT tt.taxonomy FROM $table_term_tax tt
+////		WHERE tt.term_taxonomy_id = $table_term_rel.term_taxonomy_id
+////		LIMIT 1
+////	)
+////
+////
+////SELECT ID,MIN(COUNTRY) FROM TABLE1 A
+////LEFT JOIN TABLE2 B ON A.ID=B.IDadd
+////GROUP BY ID
+//	  //ON tr.term_taxonomy_id = tt.term_taxonomy_id
+////	$extra_field .= ", MIN(tt.taxonomy)"; // to get just one result
+//	$extra_field .= ", tt.taxonomy";
+
 } else { $extra_join = ''; }
 
+// LAYERS
+$layers_by = sanitize_text_field($_GET['layers_by']); // possible values: post_type, post_status, meta_value, term_slug
+if ( $layers_by == 'post_type' ) { $extra_field .= ", p.post_type"; $layer_by = "post_type"; }
+else { $layer_by = ""; }
 //if ( array_key_exists('layers', $_GET) ) { $layers = sanitize_text_field($_GET['layers']); } else { $layers = ""; }
 
 // open the database
@@ -132,39 +162,39 @@ try {
 	$ajxres['msg']=$e->getMessage();
 	sendajax($ajxres);
 }
-//	echo "<pre>";
-//echo $sql;
-//	echo "</pre>";
+
 $ajxres=array(); // place to store the geojson result
 $features=array(); // array to build up the feature collection
 $ajxres['type']='FeatureCollection';
 
 // go through the list adding each one to the array to be returned	
-$count = 0;
+//$count = 0;
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-//$count++;
+//	$count++;
 //	echo "<pre>";
 //		echo "<strong>";
-//echo $count;
+//	echo $count;
 //	echo "</strong><br>";
 //	print_r($row);
 //	echo "</pre>";
-	$post_layer = 'nacional';
 
 	$lat = $row['lat'];
 	$lon = $row['lon'];
 
-//	$post_id = $row['ID'];
-	$post_tit = $row['post_title'];
-//	$post_perma = get_permalink($post_id);
-	$post_desc = apply_filters('the_content', $row['post_content']);
+	$post_tit = get_the_title($row['ID']);
+	//$post_tit = '';
+	$post_perma = get_permalink($row['ID']);
+	$post_desc = apply_filters('the_content', utf8_encode($row['post_content']));
+//	$post_desc = "HAR!";
 //	$post_meta_value = $row['meta_value'];
-	$post_meta_value = $row['name'];
+//	$post_meta_value = $row['name'];
+//	$post_meta_value = $row['taxonomy'];
+	$post_meta_value = "";
 	$prop=array();
 //	$prop['plaqueid'] = $post_id;
 	//$prop['plaquedesc'] = "<h3><a href='" .$post_perma. "' title='" .$post_tit. "' rel='bookmark'>" .$post_tit. "</a></h3>" .$post_desc;
-	$prop['plaquedesc'] = $post_tit. " " .$post_meta_value. " " .$post_desc;
-	//$prop['colour'] = $post_layer;
+	$prop['plaquedesc'] = $post_tit. " " .$post_meta_value. " " .$post_desc. " " .$post_perma;
+	if ( $layer_by != '' ) { $prop['layer'] = $row[$layer_by]; }
 
 	$f=array();
 	$geom=array();
@@ -179,7 +209,6 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 	$f['geometry']=$geom;
 	$f['properties']=$prop;
 
-//	echo "<pre>";print_r($f);echo "</pre>";
 	$features[]=$f;
 
 }
@@ -189,11 +218,10 @@ $ajxres['features']=$features;
 // tidy up the DB
 $db = null;
 sendajax($ajxres); // no return from there
-
 function sendajax($ajx) {
 	// encode the ajx array as json and return it.
 	$encoded = json_encode($ajx);
 	exit($encoded);
-
 }
+//wp_send_json($ajxres);
 ?>
