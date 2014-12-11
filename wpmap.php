@@ -165,25 +165,17 @@ function wpmap_geocoding( $post_id ) {
 			$data = array( 
 				//'id' => is autoincrement
 				'post_id' => $post_id,
-				'post_type' => '',
-				'post_status' => '',
 				'lat' => $lat,
-				'lon' => $lon,
-				'colour' => '',
-				'layer_group' => ''
+				'lon' => $lon
 			);
 			$format = array(
 				//'%d',
 				'%d',
-				'%s',
-				'%s',
 				'%f',
-				'%f',
-				'%s',
-				'%s'
+				'%f'
 			);
 
-		$dbquery = "SELECT post_id FROM $table WHERE post_id='$post_id' LIMIT 1";
+		$dbquery = "SELECT post_id FROM $table WHERE post_id='$post_id'";
 		if ( $wpdb->get_row($dbquery,OBJECT) == NULL && $lat != '' && $lon != '' ) {
 			/* create row */ $wpdb->insert( $table, $data, $format );
 
@@ -216,7 +208,10 @@ function wpmap_delete_geocoding( $post_id ) {
 add_shortcode('wpmap', 'wpmap_shortcode');
 function wpmap_shortcode($atts) {
 	extract( shortcode_atts( array(
-		'pt' => '',
+		'post_type' => '',
+		'post_status' => 'publish',
+		'meta_key' => '',
+		'meta_values' => '',
 		'centerLat' => WPMAP_MAP_LAT,
 		'centerLon' => WPMAP_MAP_LON,
 		'initialZoomLevel' => WPMAP_INI_ZOOM,
@@ -226,11 +221,15 @@ function wpmap_shortcode($atts) {
 		'layers' => '',
 		'colors' => '',
 		'defaultColor' => "#000000",
+		'meta_value' => '',
 	), $atts ) );
 	$the_map = "
 		<div id='map'></div>
 		<script>
-		var pt = '$pt';
+		var pType = '$post_type';
+		var pStatus = '$post_status';
+		var mKeys = '$meta_key';
+		var mValues = '$meta_values';
 		var centerLat = '$centerLat';
 		var centerLon = '$centerLon';
 		var initialZoomLevel = $initialZoomLevel;
@@ -248,8 +247,8 @@ function wpmap_shortcode($atts) {
 
 // show map function
 function wpmap_showmap( $args ) {
-	$parameters = array("pt","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","groups","layers","colors","default_color");
-	$defaults = array("",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,"","","","#000000");
+	$parameters = array("pt","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","groups","layers","colors","default_color","post_status");
+	$defaults = array("",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,"","","","#000000","publish");
 	$count = 0;
 	foreach ( $parameters as $parameter ) {
 		if ( $args[$parameter] == null ) { $args[$parameter] = $defaults[$count]; }
@@ -268,6 +267,7 @@ function wpmap_showmap( $args ) {
 		var pointLayers = [{$args['layers']}];
 		var pointColors = [{$args['colors']}];
 		var pointDefaultColor = '{$args['default_color']}';
+		var ps = '{$args['post_status']}';
 		var ajaxUrl = '".WPMAP_AJAX."';
 		</script>
 	";

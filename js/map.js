@@ -28,18 +28,17 @@ function init() {
 		var popupContent = feature.properties.plaquedesc;
 		layer.bindPopup(popupContent,popupStyle);
 	}
-	
+
 	// geojson layer
 	lyrPlq = L.geoJson(null, {
 		// marker style
 		style: setIcon,
-
+		//style: pointStyle,
 		// marker function
 		pointToLayer: function (feature, ll) {
 			//return L.marker(latlng);
 			return L.circleMarker(ll);
 		},
-
 		// popup function
 		onEachFeature: onEachFeature,
 	});
@@ -84,7 +83,7 @@ function setIcon(feature) {
 	    opacity: 1,
 	    fillOpacity: 0.8
 	};
-	//console.log(pointStyle);
+
 	jQuery.each( pointLayers, function ( i,layer ) {
 		if (feature.properties.colour==layer) {
 			colorHex = pointColors[i];
@@ -101,13 +100,14 @@ function setIcon(feature) {
 }
 
 function askForPlaques() {
-	var data='bbox=' + map.getBounds().toBBoxString() + '&pt=' + pt + '&groups=' + layerGroups + '&layers=' + pointLayers;
+	var data='bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&meta_key=' + mKeys + '&meta_value=' + mValues;
 	jQuery.ajax({
 		url: ajaxUrl,
 		dataType: 'json',
 		data: data,
 		success: showPlaques
 	});
+	console.log(ajaxUrl);
 	console.log(data);
 }
 
