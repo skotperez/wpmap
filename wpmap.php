@@ -211,6 +211,8 @@ function wpmap_shortcode($atts) {
 		// query filters
 		'post_type' => '',
 		'post_status' => 'publish',
+		'post_in' => '',
+		'post_not_in' => '',
 		'meta_key' => '',
 		'meta_value' => '',
 		'term_slug' => '',
@@ -233,6 +235,8 @@ function wpmap_shortcode($atts) {
 		<script>
 		var pType = '$post_type';
 		var pStatus = '$post_status';
+		var pIn = '$post_in';
+		var pNotIn = '$post_not_in';
 		var mKeys = '$meta_key';
 		var mValues = '$meta_value';
 		var tSlugs = '$term_slug';

@@ -30,31 +30,36 @@ if (array_key_exists('bbox', $_GET) ) {
 list($left,$bottom,$right,$top)=explode(",",$bbox);
 
 // SQL QUERY extra param.
-// fields to get
-$extra_field = "p.post_title, p.post_content";
-// build sql query extra parameters
 $ptype = sanitize_text_field($_GET['post_type']);
 $pstatus = sanitize_text_field($_GET['post_status']);
+$pin = sanitize_text_field($_GET['post_in']);
+$pnotin = sanitize_text_field($_GET['post_not_in']);
 $mkeys = sanitize_text_field($_GET['meta_key']);
 $mvalues = sanitize_text_field($_GET['meta_value']);
 $tslugs = sanitize_text_field($_GET['term_slug']);
 $filters = array(
 	'post_type' => array('values'=>$ptype,'table'=>'p'),
 	'post_status' => array('values'=>$pstatus,'table'=>'p'),
+	'ID' => array('values'=>$pin,'table'=>'p'),
+	'post_id' => array('values'=>$pnotin,'table'=>'m'),
 	'meta_key' => array('values'=>$mkeys,'table'=>'pm'),
 	'meta_values' => array('values'=>$mvalues,'table'=>'pm'),
 	'slug' => array('values'=>$tslugs,'table'=>'t'),
 );
 
+// fields to select
+$extra_field = "p.post_title, p.post_content";
+
 $extra_where = "";
-foreach ( $filters as $colum => $extra ) {
+foreach ( $filters as $column => $extra ) {
 	if ( $extra['values'] != '' ) {
-		$sql_extra = " AND {$extra['table']}.$colum IN (";
+		$sql_extra = " AND {$extra['table']}.$column IN (";
 		foreach ( explode(",",$extra['values']) as $value ) {
 			$sql_extra .= "'$value', ";
 		}
 		$sql_extra = substr($sql_extra, 0, -2);
 		$sql_extra .= ")";
+		if ( $column == 'post_id' ) { $sql_extra = str_replace("IN","NOT IN",$sql_extra); }
 
 	} else { $sql_extra = ""; }
 	$extra_where .= $sql_extra;
