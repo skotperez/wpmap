@@ -25,9 +25,6 @@ if (!defined('WPMAP_HOUSENUMBER'))
 if (!defined('WPMAP_POSTALCODE'))
     define('WPMAP_POSTAL_CODE', $wpmap_code);
 
-if (!defined('WPMAP_PT'))
-    define('WPMAP_PT', $default_pt);
-
 if (!defined('WPMAP_MAP_LAT'))
     define('WPMAP_MAP_LAT', $default_start_lat);
 
