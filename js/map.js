@@ -21,7 +21,7 @@ function init() {
 	// popup general styles
 	var popupStyle = {
 		maxHeight: 300,
-		zoomAnimation: false
+		autoPan: false
 	}
 
 	function onEachFeature(feature, layer) {
