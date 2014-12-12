@@ -257,8 +257,8 @@ function wpmap_shortcode($atts) {
 
 // show map function
 function wpmap_showmap( $args ) {
-	$parameters = array("post_type","post_status","meta_key","meta_value","term_slug","layers_by","layers","colors","default_color","center_lat","center_lon","zoom_ini","zoom_min","zoom_max");
-	$defaults = array("","publish","","","","","","","#000000",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM);
+	$parameters = array("post_type","post_status","post_in","post_not_in","meta_key","meta_value","term_slug","layers_by","layers","colors","default_color","center_lat","center_lon","zoom_ini","zoom_min","zoom_max");
+	$defaults = array("","publish","","","","","","","","","#000000",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM);
 	$count = 0;
 	foreach ( $parameters as $parameter ) {
 		if ( $args[$parameter] == null ) { $args[$parameter] = $defaults[$count]; }
@@ -272,6 +272,8 @@ function wpmap_showmap( $args ) {
 		<script>
 		var pType = '{$args['post_type']}';
 		var pStatus = '{$args['post_status']}';
+		var pIn = '{$args['post_in']}';
+		var pNotIn = '{$args['post_not_in']}';
 		var mKeys = '{$args['meta_key']}';
 		var mValues = '{$args['meta_value']}';
 		var tSlugs = '{$args['term_slug']}';
