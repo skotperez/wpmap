@@ -222,13 +222,13 @@ function wpmap_shortcode($atts) {
 		'layers_by' => '',
 		'layers' => '',
 		'colors' => '',
-		'defaultColor' => "#fff100",
+		'default_color' => "#000000",
 		// map vars
-		'centerLat' => WPMAP_MAP_LAT,
-		'centerLon' => WPMAP_MAP_LON,
-		'initialZoomLevel' => WPMAP_INI_ZOOM,
-		'minZoomLevel' => WPMAP_MIN_ZOOM,
-		'maxZoomLevel' => WPMAP_MAX_ZOOM,
+		'center_lat' => WPMAP_MAP_LAT,
+		'center_lon' => WPMAP_MAP_LON,
+		'initial_zoom_level' => WPMAP_INI_ZOOM,
+		'min_zoom_level' => WPMAP_MIN_ZOOM,
+		'max_zoom_level' => WPMAP_MAX_ZOOM,
 		// popup content
 		'popup_text' => '',
 	), $atts ) );
@@ -247,12 +247,12 @@ function wpmap_shortcode($atts) {
 		var layersBy = '$layers_by';
 		var layers = [$layers];
 		var colors = [$colors];
-		var defaultColor = '$defaultColor';
-		var centerLat = '$centerLat';
-		var centerLon = '$centerLon';
-		var initialZoomLevel = $initialZoomLevel;
-		var minZoomLevel = $minZoomLevel;
-		var maxZoomLevel = $maxZoomLevel;
+		var defaultColor = '$default_color';
+		var centerLat = '$center_lat';
+		var centerLon = '$center_lon';
+		var initialZoomLevel = $zoom_ini;
+		var minZoomLevel = $zoom_min;
+		var maxZoomLevel = $zoom_max;
 		var popupText = '$popup_text';
 		var ajaxUrl = '".WPMAP_AJAX."';
 		</script>
