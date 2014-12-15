@@ -2,7 +2,7 @@
 /*
 Plugin Name: OSM, CloudMade and Leaflet Maps in WordPress
 Description: This plugin allow you to show data from any custom post type in a map.
-Version: 0.2
+Version: 0.3
 Author: montera34
 Author URI: http://montera34.com
 License: GPLv2+
