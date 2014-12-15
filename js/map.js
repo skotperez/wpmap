@@ -25,7 +25,7 @@ function init() {
 	}
 
 	function onEachFeature(feature, layer) {
-		var popupContent = feature.properties.plaquedesc;
+		var popupContent = "<h3><a href='" + feature.properties.perma + "'>" + feature.properties.tit + "</a></h3><div>" + feature.properties.desc + "</div>";
 		layer.bindPopup(popupContent,popupStyle);
 	}
 
@@ -33,7 +33,6 @@ function init() {
 	lyrPlq = L.geoJson(null, {
 		// marker style
 		style: setIcon,
-		//style: pointStyle,
 		// marker function
 		pointToLayer: function (feature, ll) {
 			//return L.marker(latlng);
@@ -100,7 +99,7 @@ function setIcon(feature) {
 }
 
 function askForPlaques() {
-	var data='bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&post_in=' + pIn + '&post_not_in=' + pNotIn + '&meta_key=' + mKeys + '&meta_value=' + mValues + '&term_slug=' + tSlugs + '&layers_by=' + layersBy;
+	var data='bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&post_in=' + pIn + '&post_not_in=' + pNotIn + '&meta_key=' + mKeys + '&meta_value=' + mValues + '&term_slug=' + tSlugs + '&layers_by=' + layersBy + '&popup_header=' + popupHeader + '&popup_body=' + popupBody + '&popup_footer=' + popupFooter;
 	jQuery.ajax({
 		url: ajaxUrl,
 		dataType: 'json',

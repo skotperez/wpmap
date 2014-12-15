@@ -48,7 +48,7 @@ $filters = array(
 );
 
 // fields to select
-$extra_field = "p.post_title, p.post_content";
+$extra_field = "p.post_title, p.post_content, p.post_type, p.post_status";
 
 $extra_where = "";
 foreach ( $filters as $column => $extra ) {
@@ -72,7 +72,7 @@ if ( $mkeys != '' || $mvalues != '' ) { // if meta keys or meta values filters
 	INNER JOIN $table_postmeta pm
 	  ON m.post_id = pm.post_id
 	";
-	$extra_field .= ", pm.meta_value";
+	$extra_field .= ", pm.meta_value, pm.meta_key";
 
 } elseif ( $tslugs != '' ) { // if terms filters
 	$table_term_rel = $wpdb->prefix."term_relationships";
@@ -117,10 +117,17 @@ if ( $mkeys != '' || $mvalues != '' ) { // if meta keys or meta values filters
 } else { $extra_join = ''; }
 
 // LAYERS
-$layers_by = sanitize_text_field($_GET['layers_by']); // possible values: post_type, post_status, meta_value, term_slug
-if ( $layers_by == 'post_type' ) { $extra_field .= ", p.post_type"; $layer_by = "post_type"; }
-else { $layer_by = ""; }
-//if ( array_key_exists('layers', $_GET) ) { $layers = sanitize_text_field($_GET['layers']); } else { $layers = ""; }
+$layers_by = sanitize_text_field($_GET['layers_by']); // possible values: post_type, post_status, meta_key, meta_value, term_slug
+if ( $layers_by == 'term_slug' ) { $layer_by = "name"; }
+else { $layer_by = $layers_by; }
+
+// FIELDS IN POPUP
+// possible values: title, content, permalink, featured_image
+$popup_header = sanitize_text_field($_GET['popup_header']);
+$popup_body = sanitize_text_field($_GET['popup_body']);
+$popup_footer = sanitize_text_field($_GET['popup_footer']);
+if ( $popup_header == '' ) { $popup_header = "title,permalink"; }
+$popup_fields = explode(",",trim($popup_header));
 
 // open the database
 try { $db = new PDO('mysql:host='.DB_HOST.';dbname='.DB_NAME.';charset=' .DB_CHARSET, DB_USER, DB_PASSWORD); }
@@ -186,19 +193,12 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 	$lat = $row['lat'];
 	$lon = $row['lon'];
 
-	$post_tit = get_the_title($row['ID']);
-	//$post_tit = '';
-	$post_perma = get_permalink($row['ID']);
-	$post_desc = apply_filters('the_content', utf8_encode($row['post_content']));
-//	$post_desc = "HAR!";
-//	$post_meta_value = $row['meta_value'];
-//	$post_meta_value = $row['name'];
-//	$post_meta_value = $row['taxonomy'];
-	$post_meta_value = "";
+	
 	$prop=array();
-//	$prop['plaqueid'] = $post_id;
-	//$prop['plaquedesc'] = "<h3><a href='" .$post_perma. "' title='" .$post_tit. "' rel='bookmark'>" .$post_tit. "</a></h3>" .$post_desc;
-	$prop['plaquedesc'] = $post_tit. " " .$post_meta_value. " " .$post_desc. " " .$post_perma;
+	$prop['tit'] = get_the_title($row['ID']);
+	$prop['perma'] = get_permalink($row['ID']);
+	$post_desc = substr($row['post_content'], 0, 55 )."...";
+	$prop['desc'] = apply_filters('the_content', utf8_encode($post_desc));
 	if ( $layer_by != '' ) { $prop['layer'] = $row[$layer_by]; }
 
 	$f=array();
