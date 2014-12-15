@@ -99,7 +99,7 @@ function setIcon(feature) {
 }
 
 function askForPlaques() {
-	var data='bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&post_in=' + pIn + '&post_not_in=' + pNotIn + '&meta_key=' + mKeys + '&meta_value=' + mValues + '&term_slug=' + tSlugs + '&layers_by=' + layersBy + '&popup_header=' + popupHeader + '&popup_body=' + popupBody + '&popup_footer=' + popupFooter;
+	var data='bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&post_in=' + pIn + '&post_not_in=' + pNotIn + '&meta_key=' + mKeys + '&meta_value=' + mValues + '&term_slug=' + tSlugs + '&layers_by=' + layersBy + '&popup_text=' + popupText;
 	jQuery.ajax({
 		url: ajaxUrl,
 		dataType: 'json',

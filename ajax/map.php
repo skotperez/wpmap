@@ -3,22 +3,12 @@
  * returns map points as geojson 
  */
 
-// it is not necessary, already loaded
-//require_once($_SERVER['DOCUMENT_ROOT']."/wp-load.php");
-//require($_SERVER['DOCUMENT_ROOT']."/wp-load.php");
-
-// uncomment below to turn error reporting on
-// ini_set('display_errors', 1);
-// error_reporting(E_ALL);
-
 // get the server credentials
 $idb= $_SERVER['DOCUMENT_ROOT']."/wp-config.php";
 require_once($idb);
 
-if (array_key_exists('bbox', $_GET) ) {
-	$bbox = sanitize_text_field($_GET['bbox']);
-
-} else {
+if (array_key_exists('bbox', $_GET) ) { $bbox = sanitize_text_field($_GET['bbox']); }
+else {
 	// invalid request
 	$ajxres=array();
 	$ajxres['resp']=4;
@@ -88,32 +78,6 @@ if ( $mkeys != '' || $mvalues != '' ) { // if meta keys or meta values filters
 	";
 	$extra_field .= ", t.name";
 
-//} elseif ( $taxs != '' ) { // if taxonomies filters
-//	$table_term_rel = $wpdb->prefix."term_relationships";
-//	$table_term_tax = $wpdb->prefix."term_taxonomy";
-//	$extra_join = "
-//	INNER JOIN $table_term_rel tr
-//	  ON m.post_id = tr.object_id
-//	INNER JOIN (
-//		SELECT term_taxonomy_id, taxonomy FROM $table_term_tax LIMIT 1) AS tt
-//	  ON tr.term_taxonomy_id = tt.term_taxonomy_id
-//	";
-////SELECT IDadd,MIN(Name) Name FROM TABLE2 GROUP BY IDadd) AS B
-////ON B.IDadd = A.ID
-////	  ON tr.term_taxonomy_id = (
-////		SELECT tt.taxonomy FROM $table_term_tax tt
-////		WHERE tt.term_taxonomy_id = $table_term_rel.term_taxonomy_id
-////		LIMIT 1
-////	)
-////
-////
-////SELECT ID,MIN(COUNTRY) FROM TABLE1 A
-////LEFT JOIN TABLE2 B ON A.ID=B.IDadd
-////GROUP BY ID
-//	  //ON tr.term_taxonomy_id = tt.term_taxonomy_id
-////	$extra_field .= ", MIN(tt.taxonomy)"; // to get just one result
-//	$extra_field .= ", tt.taxonomy";
-
 } else { $extra_join = ''; }
 
 // LAYERS
@@ -122,12 +86,10 @@ if ( $layers_by == 'term_slug' ) { $layer_by = "name"; }
 else { $layer_by = $layers_by; }
 
 // FIELDS IN POPUP
-// possible values: title, content, permalink, featured_image
-$popup_header = sanitize_text_field($_GET['popup_header']);
-$popup_body = sanitize_text_field($_GET['popup_body']);
-$popup_footer = sanitize_text_field($_GET['popup_footer']);
-if ( $popup_header == '' ) { $popup_header = "title,permalink"; }
-$popup_fields = explode(",",trim($popup_header));
+$popup_text = sanitize_text_field($_GET['popup_text']); // values: content, excerpt
+//$popup_author = sanitize_text_field($_GET['popup_author']); // values: name
+//$popup_date = sanitize_text_field($_GET['popup_date']); // values: 
+//$popup_img = sanitize_text_field($_GET['popup_image']); // values: featured
 
 // open the database
 try { $db = new PDO('mysql:host='.DB_HOST.';dbname='.DB_NAME.';charset=' .DB_CHARSET, DB_USER, DB_PASSWORD); }
@@ -182,22 +144,14 @@ $ajxres['type']='FeatureCollection';
 // go through the list adding each one to the array to be returned	
 //$count = 0;
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-//	$count++;
-//	echo "<pre>";
-//		echo "<strong>";
-//	echo $count;
-//	echo "</strong><br>";
-//	print_r($row);
-//	echo "</pre>";
-
 	$lat = $row['lat'];
 	$lon = $row['lon'];
 
-	
 	$prop=array();
 	$prop['tit'] = get_the_title($row['ID']);
 	$prop['perma'] = get_permalink($row['ID']);
-	$post_desc = substr($row['post_content'], 0, 55 )."...";
+	if ( $popup_text == 'excerpt' ) { $post_desc = wp_trim_words( $row['post_content'], 55 ); }
+	else { $post_desc = $row['post_content']; }
 	$prop['desc'] = apply_filters('the_content', utf8_encode($post_desc));
 	if ( $layer_by != '' ) { $prop['layer'] = $row[$layer_by]; }
 
