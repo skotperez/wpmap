@@ -44,7 +44,7 @@ if (!defined('WPMAP_AJAX'))
     define('WPMAP_AJAX', plugins_url( 'ajax/map.php' , __FILE__));
 
 /* Load map JavaScript and styles */
-add_action( 'wp_enqueue_scripts', 'wpmap_scripts_styles' );
+add_action( 'wp_enqueue_scripts', 'wpmap_register_load_styles' );
 
 // get coordinates from OSM when a post is created or saved
 // the action to hook the geocoding must be save_post (not wp_insert_post) to keep geodata updated
@@ -58,10 +58,14 @@ register_activation_hook( __FILE__, 'wpmap_create_db_table' );
 // update wpmap table in db, if there are changes
 add_action( 'plugins_loaded', 'wpmap_update_db_table' );
 
-// Register styles and scripts
-function wpmap_scripts_styles() {
+// Register and load styles
+function wpmap_register_load_styles() {
 	wp_enqueue_style( 'leaflet-css','http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css' );
 	wp_enqueue_style( 'wpmap-css',plugins_url( 'style/map.css' , __FILE__) );
+} // end register load map styles
+
+// Register and load scripts
+function wpmap_register_load_scripts() {
 	wp_enqueue_script(
 		'leaflet-js',
 		'http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js',
@@ -83,7 +87,7 @@ function wpmap_scripts_styles() {
 		'0.1',
 		TRUE
 	);
-} // end map scripts and styles
+} // end register load map scripts
 
 // create map data table in db
 global $wpmap_db_version;
@@ -204,6 +208,7 @@ function wpmap_delete_geocoding( $post_id ) {
 // wpmap shortcode
 add_shortcode('wpmap', 'wpmap_shortcode');
 function wpmap_shortcode($atts) {
+	wpmap_register_load_scripts();
 	extract( shortcode_atts( array(
 		// query filters
 		'post_type' => '',
@@ -224,6 +229,10 @@ function wpmap_shortcode($atts) {
 		'initialZoomLevel' => WPMAP_INI_ZOOM,
 		'minZoomLevel' => WPMAP_MIN_ZOOM,
 		'maxZoomLevel' => WPMAP_MAX_ZOOM,
+		// popup content
+		'popup_header' => '',
+		'popup_body' => '',
+		'popup_footer' => '',
 	), $atts ) );
 	$layers = "'".str_replace(",","','",$layers)."'";
 	$colors = "'".str_replace(",","','",$colors)."'";
@@ -246,6 +255,9 @@ function wpmap_shortcode($atts) {
 		var initialZoomLevel = $initialZoomLevel;
 		var minZoomLevel = $minZoomLevel;
 		var maxZoomLevel = $maxZoomLevel;
+		var popupHeader = '$popup_header';
+		var popupBody = '$popup_body';
+		var popupFooter = '$popup_footer';
 		var ajaxUrl = '".WPMAP_AJAX."';
 		</script>
 	";
@@ -254,6 +266,7 @@ function wpmap_shortcode($atts) {
 
 // show map function
 function wpmap_showmap( $args ) {
+	wpmap_register_load_scripts();
 	$parameters = array("post_type","post_status","post_in","post_not_in","meta_key","meta_value","term_slug","layers_by","layers","colors","default_color","center_lat","center_lon","zoom_ini","zoom_min","zoom_max");
 	$defaults = array("","publish","","","","","","","","","#000000",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM);
 	$count = 0;
