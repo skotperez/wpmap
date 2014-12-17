@@ -226,9 +226,9 @@ function wpmap_shortcode($atts) {
 		// map vars
 		'center_lat' => WPMAP_MAP_LAT,
 		'center_lon' => WPMAP_MAP_LON,
-		'initial_zoom_level' => WPMAP_INI_ZOOM,
-		'min_zoom_level' => WPMAP_MIN_ZOOM,
-		'max_zoom_level' => WPMAP_MAX_ZOOM,
+		'zoom_ini' => WPMAP_INI_ZOOM,
+		'zoom_min' => WPMAP_MIN_ZOOM,
+		'zoom_max' => WPMAP_MAX_ZOOM,
 		// popup content
 		'popup_text' => '',
 	), $atts ) );
