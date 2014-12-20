@@ -55,6 +55,8 @@ You can pass the following attributes, all of them optional, to the shortcode:
  + **zoom_ini**. Initial zoom level: between 1 and 19. Default: *10
  + **zoom_min**. Minimal (farest) zoom level: between 1 and 19. Default: *5*
  + **zoom_max**. Maximal (closer) zoom level: between 1 and 19. Default: *19*
+ + **map_width**. Map container width. It has to include units (px, %, em). Default: *100%*
+ + **map_height**. Map container height. It has to include units (px, %, em). Default: *500px*
 + **Popup content**. This group of attributes will define the info to show in the marker popup.
  + **popup_text**. Possible values: content or excerpt. Default: *content*.
 

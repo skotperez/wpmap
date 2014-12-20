@@ -229,13 +229,19 @@ function wpmap_shortcode($atts) {
 		'zoom_ini' => WPMAP_INI_ZOOM,
 		'zoom_min' => WPMAP_MIN_ZOOM,
 		'zoom_max' => WPMAP_MAX_ZOOM,
+		'map_width' => '',
+		'map_height' => '',
 		// popup content
 		'popup_text' => '',
 	), $atts ) );
 	$layers = "'".str_replace(",","','",$layers)."'";
 	$colors = "'".str_replace(",","','",$colors)."'";
+	$map_style = "";
+	if ( $map_width != '' ) { $map_style .= "width:".$map_width.";"; }
+	if ( $map_height != '' ) { $map_style .= "height:".$map_height.";"; }
+	if ( $map_style != '' ) { $map_style = " style='".$map_style."'"; }
 	$the_map = "
-		<div id='map'></div>
+		<div id='map'".$map_style."></div>
 		<script>
 		var pType = '$post_type';
 		var pStatus = '$post_status';
@@ -263,8 +269,8 @@ function wpmap_shortcode($atts) {
 // show map function
 function wpmap_showmap( $args ) {
 	wpmap_register_load_scripts();
-	$parameters = array("post_type","post_status","post_in","post_not_in","meta_key","meta_value","term_slug","layers_by","layers","colors","default_color","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","popup_text");
-	$defaults = array("","publish","","","","","","","","","#000000",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,"");
+	$parameters = array("post_type","post_status","post_in","post_not_in","meta_key","meta_value","term_slug","layers_by","layers","colors","default_color","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","map_width","map_height","popup_text");
+	$defaults = array("","publish","","","","","","","","","#000000",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,"","","");
 	$count = 0;
 	foreach ( $parameters as $parameter ) {
 		if ( $args[$parameter] == null ) { $args[$parameter] = $defaults[$count]; }
@@ -273,6 +279,10 @@ function wpmap_showmap( $args ) {
 		}
 		$count++;
 	}
+	$map_style = "";
+	if ( $map_width != '' ) { $map_style .= "width:".$map_width.";"; }
+	if ( $map_height != '' ) { $map_style .= "height:".$map_height.";"; }
+	if ( $map_style != '' ) { $map_style = " style='".$map_style."'"; }
 	$the_map = "
 		<div id='map'></div>
 		<script>
