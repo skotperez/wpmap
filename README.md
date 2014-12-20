@@ -15,11 +15,12 @@ This is a very alpha version of wpmap. Things to be considered:
 
 ## Basic configuration
 
-+ Upload the plugin to your plugins folder and activate it.
++ Rename config file wpmap/wpmap-config-sample.php to wpmap-config.php.
 + Set up the variables in wpmap/wpmap-config.php file.
- + Set the name of the custom fields that will store info to georeference the posts: country, city, street name, house number and postal code. Just country and city are required to do the geocoding.
- + Set the default center and zoom level of the map 
-+ Customize the styles of the map in wpmap/style/map.css
+ + Set the name of the custom fields that will store info to georeference the posts: country, city, state, street name, house number and postal code. Just country and city are required to do the geocoding.
+ + Set the default center and zoom level of the map.
++ Customize the styles of the map in wpmap/style/map.css if you want.
++ Upload the plugin to your plugins folder and activate it.
 
 ## How does it work?
 Every time you save a post (or Custom Post Type) with the Custom Fields properly filled (in the default example: "city" and "country") the plugin will geocode the location (longitude, latitude,) and store it in the database.
