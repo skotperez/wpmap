@@ -59,6 +59,8 @@ You can pass the following attributes, all of them optional, to the shortcode:
  + **map_height**. Map container height. It has to include units (px, %, em). Default: *500px*
 + **Popup content**. This group of attributes will define the info to show in the marker popup.
  + **popup_text**. Possible values: content or excerpt. Default: *content*.
+ + **popup_max_width**. Max width of the popup, without units. Default: *300*.
+ + **popup_max_height**. Max height of the popup, without units. Default: *300*.
 
 Filter are not all of them compatible:
 + post_in must to be alone.

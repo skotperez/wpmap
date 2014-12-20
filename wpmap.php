@@ -233,6 +233,8 @@ function wpmap_shortcode($atts) {
 		'map_height' => '',
 		// popup content
 		'popup_text' => '',
+		'popup_max_width' => '300',
+		'popup_max_height' => '300',
 	), $atts ) );
 	$layers = "'".str_replace(",","','",$layers)."'";
 	$colors = "'".str_replace(",","','",$colors)."'";
@@ -260,6 +262,8 @@ function wpmap_shortcode($atts) {
 		var minZoomLevel = $zoom_min;
 		var maxZoomLevel = $zoom_max;
 		var popupText = '$popup_text';
+		var popupMaxWidth = '$popup_max_width';
+		var popupMaxHeight = '$popup_max_height';
 		var ajaxUrl = '".WPMAP_AJAX."';
 		</script>
 	";
@@ -269,8 +273,8 @@ function wpmap_shortcode($atts) {
 // show map function
 function wpmap_showmap( $args ) {
 	wpmap_register_load_scripts();
-	$parameters = array("post_type","post_status","post_in","post_not_in","meta_key","meta_value","term_slug","layers_by","layers","colors","default_color","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","map_width","map_height","popup_text");
-	$defaults = array("","publish","","","","","","","","","#000000",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,"","","");
+	$parameters = array("post_type","post_status","post_in","post_not_in","meta_key","meta_value","term_slug","layers_by","layers","colors","default_color","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","map_width","map_height","popup_text","popup_max_width","popup_max_height");
+	$defaults = array("","publish","","","","","","","","","#000000",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,"","300","300");
 	$count = 0;
 	foreach ( $parameters as $parameter ) {
 		if ( $args[$parameter] == null ) { $args[$parameter] = $defaults[$count]; }
@@ -303,6 +307,8 @@ function wpmap_showmap( $args ) {
 		var minZoomLevel = {$args['zoom_min']};
 		var maxZoomLevel = {$args['zoom_max']};
 		var popupText = '{$args['popup_text']};
+		var popupMaxWidth = '{$args['popup_max_width']};
+		var popupMaxHeight = '{$args['popup_max_height']};
 		var ajaxUrl = '".WPMAP_AJAX."';
 		</script>
 	";

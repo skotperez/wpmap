@@ -20,7 +20,8 @@ function init() {
 
 	// popup general styles
 	var popupStyle = {
-		maxHeight: 300,
+		maxWidth: popupMaxWidth,
+		maxHeight: popupMaxHeight,
 		autoPan: false
 	}
 
