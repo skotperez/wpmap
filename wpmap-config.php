@@ -2,6 +2,7 @@
 /* EDIT THIS VARS TO CONFIG THE PLUGIN */
 $wpmap_country = "country"; // custom field that stores country
 $wpmap_city = "city"; // custom field that stores city
+$wpmap_state = "state"; // custom field that stores state
 $wpmap_street = "streetname"; // custom field that stores street name
 $wpmap_number = "housenumber"; // custom field that stores house number
 $wpmap_code = "postalcode"; // custom field that stores postal code

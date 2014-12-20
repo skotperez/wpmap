@@ -16,6 +16,9 @@ if (!defined('WPMAP_COUNTRY'))
 if (!defined('WPMAP_CITY'))
     define('WPMAP_CITY', $wpmap_city);
 
+if (!defined('WPMAP_STATE'))
+    define('WPMAP_STATE', $wpmap_state);
+
 if (!defined('WPMAP_STREETNAME'))
     define('WPMAP_STREETNAME', $wpmap_street);
 
@@ -145,11 +148,12 @@ function wpmap_geocoding( $post_id ) {
 	if ( $city != '' || $country != '' ) {
 
 		// do geocoding
+		$state = urlencode(get_post_meta( $post_id, WPMAP_STREETNAME, true ));
 		$street_name = urlencode(get_post_meta( $post_id, WPMAP_STREETNAME, true ));
 		$house_number = urlencode(get_post_meta( $post_id, WPMAP_HOUSENUMBER, true ));
 		$postal_code = urlencode(get_post_meta( $post_id, WPMAP_POSTALCODE, true ));
 		// use nominatim geocoding service to get coords
-		$results_json = file_get_contents("http://nominatim.openstreetmap.org/search?format=json&country=".$country."&city=".$city."&street=".$house_number."%20".$street_name."&postalcode=".$postal_code."&limit=1");
+		$results_json = file_get_contents("http://nominatim.openstreetmap.org/search?format=json&country=".$country."&city=".$city."&state=".$state."&street=".$house_number."%20".$street_name."&postalcode=".$postal_code."&limit=1");
 		$results = json_decode($results_json,TRUE); // if second parameter is set to TRUE, the output is ass. array
 
 		if ( !array_key_exists('0',$results) ) {
