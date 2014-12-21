@@ -3,9 +3,9 @@ wpmap
 
 Latest version: 0.3 (this version is not compatible with the previous).
 
-wpmap plugin let you show in a map posts and other custom post types in your Wordpress posts and pages.
+wpmap plugin lets you show in a map posts and other custom post types in your Wordpress posts and pages.
 
-wpmap use OpenStreetMaps and Leaflet.
+wpmap uses OpenStreetMaps and Leaflet.
 
 This is a very alpha version of wpmap. Things to be considered:
 
@@ -49,7 +49,8 @@ You can pass the following attributes, all of them optional, to the shortcode:
 + **Layers**. This group of attributes will define the layers of markers in the map.
  + **layers_by**. The criteria to group the markers in layers. Possible values: post_type, post_status, meta_key, meta_value, term_slug. Default: *none*
  + **layers**. The layers to show in the map. Default: *none*
- + **colors**. The color for each layers above, in order. Default color: *#000000*
+ + **colors**. The color for each layers above, in order. Default: *#000000*
+ + **default_color**. The default color for layers. Default: *#000000*
 + **Map config**. This group of attributes will set up the map itself.
  + **center_lat**. Latitude for the center of the map. Default: *42.863690*
  + **center_lon**. Longitude for the center of the map. Default: *1.200625*

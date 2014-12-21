@@ -76,13 +76,13 @@ if ( $mkeys != '' || $mvalues != '' ) { // if meta keys or meta values filters
 	INNER JOIN $table_terms t
 	  ON tt.term_id = t.term_id
 	";
-	$extra_field .= ", t.name";
+	$extra_field .= ", t.name, t.slug";
 
 } else { $extra_join = ''; }
 
 // LAYERS
 $layers_by = sanitize_text_field($_GET['layers_by']); // possible values: post_type, post_status, meta_key, meta_value, term_slug
-if ( $layers_by == 'term_slug' ) { $layer_by = "name"; }
+if ( $layers_by == 'term_slug' ) { $layer_by = "slug"; }
 else { $layer_by = $layers_by; }
 
 // FIELDS IN POPUP
