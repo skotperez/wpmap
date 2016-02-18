@@ -2,7 +2,7 @@
 /*
 Plugin Name: OSM, CloudMade and Leaflet Maps in WordPress
 Description: This plugin allow you to show data from any custom post type in a map.
-Version: 0.3
+Version: 0.4
 Author: montera34
 Author URI: http://montera34.com
 License: GPLv2+
@@ -44,7 +44,12 @@ if (!defined('WPMAP_MAX_ZOOM'))
     define('WPMAP_MAX_ZOOM', $default_max_zoom);
 
 if (!defined('WPMAP_AJAX'))
-    define('WPMAP_AJAX', plugins_url( 'ajax/map.php' , __FILE__));
+//    define('WPMAP_AJAX', plugins_url( 'ajax/map.php' , __FILE__));
+    define('WPMAP_AJAX', admin_url( 'admin-ajax.php' , __FILE__));
+
+// Hook AJAX requests
+add_action('wp_ajax_nopriv_wpmap_get_map_data','wpmap_get_map_data_callback');
+add_action('wp_ajax_wpmap_get_map_data','wpmap_get_map_data_callback');
 
 /* Load map JavaScript and styles */
 add_action( 'wp_enqueue_scripts', 'wpmap_register_load_styles' );
@@ -80,6 +85,7 @@ function wpmap_register_load_scripts() {
 		'wpmap-js',
 		plugins_url( 'js/map.js' , __FILE__),
 		array( 'leaflet-js' ),
+		'',
 		'0.1',
 		TRUE
 	);
@@ -318,4 +324,178 @@ function wpmap_showmap( $args ) {
 	";
 	echo $the_map;
 } // END show map function
+
+// Callback function for AJAX request
+// Build the geoJSON response
+function wpmap_get_map_data_callback() {
+
+	global $wpdb;
+// SET MAP BOUNDS
+	if (array_key_exists('bbox', $_GET) ) {
+		$bbox = sanitize_text_field($_GET['bbox']);
+
+	}
+	else {
+		$response = array(
+			'data'	=> 'error',
+			'message' => 'Missing bounding box.'
+		);
+		header( "Content-Type: application/json" );
+		echo json_encode($response);
+		wp_die();
+	}
+
+	// split the bbox into it's parts
+	list($left,$bottom,$right,$top)=explode(",",$bbox);
+
+// PREPARE DB QUERY PARAMETERS
+	$filters = array();
+	foreach ( array(
+		'post_type' => array('post_type','p'),
+		'post_status' => array('post_status','p'),
+		'ID' => array('post_in','p'),
+		'post_id' => array('post_not_in','m'),
+		'meta_key' => array('meta_key','pm'),
+		'meta_values' => array('meta_value','pm'),
+		'slug' => array('term_slug','t')
+	) as $k => $p ) {
+		if (array_key_exists($p[0], $_GET) ) { $$p[0] = sanitize_text_field($_GET[$p[0]]); }
+		else { $$p[0] = ""; }
+		$filters[$k] = array('values'=>$$p[0],'table'=>$p[1]);
+
+	}
+
+	// fields to select
+	$extra_field = "p.post_title, p.post_content, p.post_type, p.post_status";
+
+	$extra_where = "";
+	foreach ( $filters as $column => $extra ) {
+		if ( $extra['values'] != '' ) {
+			$sql_extra = " AND {$extra['table']}.$column IN (";
+			foreach ( explode(",",$extra['values']) as $value ) {
+				$sql_extra .= "'$value', ";
+			}
+			$sql_extra = substr($sql_extra, 0, -2);
+			$sql_extra .= ")";
+			if ( $column == 'post_id' ) { $sql_extra = str_replace("IN","NOT IN",$sql_extra); }
+	
+		} else { $sql_extra = ""; }
+		$extra_where .= $sql_extra;
+
+	} // end foreach extra sql parametres
+
+	if ( $meta_key != '' || $meta_value != '' ) { // if meta keys or meta values filters
+		$table_postmeta = $wpdb->prefix."postmeta";
+		$extra_join = "
+		INNER JOIN $table_postmeta pm
+		  ON m.post_id = pm.post_id
+		";
+		$extra_field .= ", pm.meta_value, pm.meta_key";
+
+	} elseif ( $term_slug != '' ) { // if terms filters
+		$table_term_rel = $wpdb->prefix."term_relationships";
+		$table_term_tax = $wpdb->prefix."term_taxonomy";
+		$table_terms = $wpdb->prefix."terms";
+		$extra_join = "
+		INNER JOIN $table_term_rel tr
+		  ON m.post_id = tr.object_id
+		INNER JOIN $table_term_tax tt
+		  ON tr.term_taxonomy_id = tt.term_taxonomy_id
+		INNER JOIN $table_terms t
+		  ON tt.term_id = t.term_id
+		";
+		$extra_field .= ", t.name, t.slug";
+
+	} else { $extra_join = ''; }
+
+// MAP LAYERS
+	if (array_key_exists('layers_by', $_GET) ) {
+		$layers_by = sanitize_text_field($_GET['layers_by']); // possible values: post_type, post_status, meta_key, meta_value, term_slug
+		if ( $layers_by == 'term_slug' ) { $layer_by = "slug"; }
+		else { $layer_by = $layers_by; }
+	} else { $layer_by = ""; }
+
+// FIELDS IN POPUP
+	if (array_key_exists('popup_text', $_GET) ) {
+		$popup_text = sanitize_text_field($_GET['popup_text']); // values: content, excerpt
+		//$popup_author = sanitize_text_field($_GET['popup_author']); // values: name
+		//$popup_date = sanitize_text_field($_GET['popup_date']); // values: 
+		//$popup_img = sanitize_text_field($_GET['popup_image']); // values: featured
+
+	} else { $popup_text = ""; }
+		
+// INIT DB QUERY
+	$table_map = $wpdb->prefix."wpmap";
+	$table_posts = $wpdb->prefix."posts";
+	$sql_query = "
+	SELECT
+	  m.lat,
+	  m.lon,
+	  p.ID,
+	  $extra_field
+	FROM $table_map m
+	INNER JOIN $table_posts p
+	  ON m.post_id = p.ID
+	$extra_join
+	WHERE m.lon>=$left AND m.lon<=$right
+	  AND m.lat>=$bottom AND m.lat<=$top
+	  $extra_where
+	";
+	$query_results = $wpdb->get_results( $sql_query , ARRAY_A );
+
+// BUILD GEOJSON RESPONSE
+	$response = array(); // place to store the geojson result
+	$features = array(); // array to build up the feature collection
+	$response['type'] = 'FeatureCollection';
+	
+	foreach ( $query_results as $row ) {
+		$lat = $row['lat'];
+		$lon = $row['lon'];
+	
+		$prop=array();
+		$prop['tit'] = get_the_title($row['ID']);
+		$prop['perma'] = get_permalink($row['ID']);
+		if ( $popup_text == 'excerpt' ) { $post_desc = wp_trim_words( $row['post_content'], 55 ); }
+		else { $post_desc = $row['post_content']; }
+		$prop['desc'] = apply_filters('the_content', utf8_encode($post_desc));
+		if ( $layer_by != '' ) { $prop['layer'] = $row[$layer_by]; }
+	
+		$f=array();
+		$geom=array();
+		$coords=array();
+		
+		$geom['type']='Point';
+		$coords[0]=floatval($lon);
+		$coords[1]=floatval($lat);
+	
+		$geom['coordinates']=$coords;
+		$f['type']='Feature';
+		$f['geometry']=$geom;
+		$f['properties']=$prop;
+	
+		$features[]=$f;
+	
+	}
+		
+	// add the features array to the end of the ajxres array
+	$response['features'] = $features;
+	
+	// Instantiate WP_Ajax_Response
+//	$response = new WP_Ajax_Response;	
+//	$response->add( array(
+//		'data'	=> 'success',
+//		'square'=> $bbox,
+//		'supplemental' => array(
+//			'message' => 'Ajax call received.'
+//		),
+//	) );
+	// Whatever the outcome, send the Response back
+//	$response->send();
+	header( "Content-Type: application/json" );
+	echo json_encode($response);
+
+	// Always exit when doing Ajax
+//	exit();
+	wp_die();
+}
 ?>

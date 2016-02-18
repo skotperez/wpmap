@@ -100,15 +100,28 @@ function setIcon(feature) {
 }
 
 function askForPlaques() {
-	var data='bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&post_in=' + pIn + '&post_not_in=' + pNotIn + '&meta_key=' + mKeys + '&meta_value=' + mValues + '&term_slug=' + tSlugs + '&layers_by=' + layersBy + '&popup_text=' + popupText;
+	//var data='action=wpmap_get_map_data&bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&post_in=' + pIn + '&post_not_in=' + pNotIn + '&meta_key=' + mKeys + '&meta_value=' + mValues + '&term_slug=' + tSlugs + '&layers_by=' + layersBy + '&popup_text=' + popupText;
+	var data = {
+		action: 'wpmap_get_map_data',
+		bbox: map.getBounds().toBBoxString(),
+		post_type: pType,
+		post_status: pStatus,
+		post_in: pIn,
+		post_not_in: pNotIn,
+		meta_key: mKeys,
+		meta_value: mValues,
+		term_slug: tSlugs,
+		layers_by: layersBy,
+		popup_text: popupText
+		//nonce: nonce
+	}
 	jQuery.ajax({
 		url: ajaxUrl,
 		dataType: 'json',
 		data: data,
 		success: showPlaques
 	});
-	console.log(ajaxUrl);
-	console.log(data);
+
 }
 
 function showPlaques(ajxresponse) {
