@@ -1,7 +1,7 @@
 wpmap
 =====
 
-Latest version: 0.3 (this version is not compatible with the previous).
+Latest version: 0.4
 
 wpmap plugin lets you show in a map posts and other custom post types in your Wordpress posts and pages.
 
