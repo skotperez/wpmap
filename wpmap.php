@@ -245,6 +245,11 @@ function wpmap_shortcode($atts) {
 		'popup_text' => '',
 		'popup_max_width' => '300',
 		'popup_max_height' => '300',
+		// marker style
+		'marker_radius' => '15',
+		'marker_opacity' => '0.8',
+		'marker_fillOpacity' => '0.8',
+		
 	), $atts ) );
 	$layers = "'".str_replace(",","','",$layers)."'";
 	$colors = "'".str_replace(",","','",$colors)."'";
@@ -274,6 +279,9 @@ function wpmap_shortcode($atts) {
 		var popupText = '$popup_text';
 		var popupMaxWidth = '$popup_max_width';
 		var popupMaxHeight = '$popup_max_height';
+		var markerRadius = '$marker_radius';
+		var markerOpacity = '$marker_opacity';
+		var markerFillOpacity = '$marker_fillOpacity';
 		var ajaxUrl = '".WPMAP_AJAX."';
 		</script>
 	";
@@ -283,8 +291,8 @@ function wpmap_shortcode($atts) {
 // show map function
 function wpmap_showmap( $args ) {
 	wpmap_register_load_scripts();
-	$parameters = array("post_type","post_status","post_in","post_not_in","meta_key","meta_value","term_slug","layers_by","layers","colors","default_color","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","map_width","map_height","popup_text","popup_max_width","popup_max_height");
-	$defaults = array("","publish","","","","","","","","","#000000",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,"","300","300");
+	$parameters = array("post_type","post_status","post_in","post_not_in","meta_key","meta_value","term_slug","layers_by","layers","colors","default_color","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","map_width","map_height","popup_text","popup_max_width","popup_max_height",'marker_radius','marker_opacity','marker_fillOpacity');
+	$defaults = array("","publish","","","","","","","","","#000000",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,"","300","300","15","0.8","0.8");
 	$count = 0;
 	foreach ( $parameters as $parameter ) {
 		if ( $args[$parameter] == null ) { $args[$parameter] = $defaults[$count]; }
@@ -319,6 +327,9 @@ function wpmap_showmap( $args ) {
 		var popupText = '{$args['popup_text']};
 		var popupMaxWidth = '{$args['popup_max_width']};
 		var popupMaxHeight = '{$args['popup_max_height']};
+		var markerRadius = '{$args['marker_radius']};
+		var markerOpacity = '{$args['marker_opacity']};
+		var markerFillOpacity = '{$args['marker_fillOpacity']};
 		var ajaxUrl = '".WPMAP_AJAX."';
 		</script>
 	";

@@ -78,10 +78,10 @@ function whenMapMoves(e) {
 
 function setIcon(feature) {
 	var pointStyle = {
-	    radius: 18,
+	    radius: markerRadius,
 	    weight: 1,
-	    opacity: 1,
-	    fillOpacity: 0.8
+	    opacity: markerOpacity,
+	    fillOpacity: markerFillOpacity
 	};
 
 	jQuery.each( layers, function ( i,layer ) {

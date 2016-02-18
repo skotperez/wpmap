@@ -1,7 +1,7 @@
 wpmap
 =====
 
-Latest version release: 0.4
+Latest version release: 0.41
 
 wpmap plugin lets you show in a map posts and other custom post types in your Wordpress posts and pages.
 
@@ -13,6 +13,9 @@ This is a very alpha version of wpmap. Things to be considered:
 + This plugin may not suite your needs.
 
 ## Changelog
+
+### v0.41
++ New parameters in both map shortcode and function to define markers style in each map instance: marker_radius, marker_opacity and marker_fillOpacity.
 
 ### v0.4
 + Ajax requests are now handle by admin-ajax.php. This is the right way to do it in WordPress.
@@ -67,6 +70,10 @@ You can pass the following attributes, all of them optional, to the shortcode:
  + **popup_text**. Possible values: content or excerpt. Default: *content*.
  + **popup_max_width**. Max width of the popup, without units. Default: *300*.
  + **popup_max_height**. Max height of the popup, without units. Default: *300*.
++ **Markers style**. This group of attributes will define the style of the markers.
+ + **marker_radius**. In pixels. Default: *15*.
+ + **marker_opacity**. Opacity for the marker border. Works like opacity CSS property. Default: *0.8*.
+ + **marker_fillOpacity**. Opacity for the circle. Works like opacity CSS property. Default: *0.8*.
 
 Filter are not all of them compatible:
 + post_in must to be alone.
