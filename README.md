@@ -1,7 +1,7 @@
 wpmap
 =====
 
-Latest version: 0.4
+Latest version release: 0.4
 
 wpmap plugin lets you show in a map posts and other custom post types in your Wordpress posts and pages.
 
@@ -11,7 +11,11 @@ This is a very alpha version of wpmap. Things to be considered:
 
 + Many things cannot work.
 + This plugin may not suite your needs.
-+ To make it work you may need to make changes in your theme.
+
+## Changelog
+
+### v0.4
++ Ajax requests are now handle by admin-ajax.php. This is the right way to do it in WordPress.
 
 ## Basic configuration
 
