@@ -4,9 +4,9 @@ var lyrOsm;	// the Mapnik base layer of the map
 var lyrPlq;	// the geoJson layer to display plaques with
 
 // when the whole document has loaded call the init function
-jQuery(document).ready(init);
+//jQuery(document).ready(init);
 
-function init() {	
+//function init() {	
 
 	// base layer
 	var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';    
@@ -70,7 +70,7 @@ function init() {
 
 	askForPlaques();
 
-} // end init function
+//} // end init function
 
 function whenMapMoves(e) {
 	askForPlaques();

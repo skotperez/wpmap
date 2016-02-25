@@ -47,6 +47,17 @@ if (!defined('WPMAP_AJAX'))
 //    define('WPMAP_AJAX', plugins_url( 'ajax/map.php' , __FILE__));
     define('WPMAP_AJAX', admin_url( 'admin-ajax.php' , __FILE__));
 
+// GEOSEARCH MODULE
+if (!defined('WPMAP_GEOSEARCH'))
+    define('WPMAP_GEOSEARCH', $geosearch_enabled);
+if (!defined('WPMAP_GEOSEARCH_ECHOED'))
+    define('WPMAP_GEOSEARCH_ECHOED', $geosearch_echoed);
+if (!defined('WPMAP_GEOSEARCH_LAT_ID'))
+    define('WPMAP_GEOSEARCH_LAT_ID', $geosearch_lat_id);
+if (!defined('WPMAP_GEOSEARCH_LON_ID'))
+    define('WPMAP_GEOSEARCH_LON_ID', $geosearch_lon_id);
+
+
 // Hook AJAX requests
 add_action('wp_ajax_nopriv_wpmap_get_map_data','wpmap_get_map_data_callback');
 add_action('wp_ajax_wpmap_get_map_data','wpmap_get_map_data_callback');
@@ -56,7 +67,7 @@ add_action( 'wp_enqueue_scripts', 'wpmap_register_load_styles' );
 
 // get coordinates from OSM when a post is created or saved
 // the action to hook the geocoding must be save_post (not wp_insert_post) to keep geodata updated
-add_action( 'save_post', 'wpmap_geocoding' );
+add_action( 'save_post', 'wpmap_save_post_coords' );
 
 // delete row from wp_wpmap when a post is permanently deleted
 add_action('deleted_post', 'wpmap_delete_geocoding');
@@ -70,6 +81,10 @@ add_action( 'plugins_loaded', 'wpmap_update_db_table' );
 function wpmap_register_load_styles() {
 	wp_enqueue_style( 'leaflet-css','http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css' );
 	wp_enqueue_style( 'wpmap-css',plugins_url( 'style/map.css' , __FILE__) );
+	// L.GeoSearch MODULE
+	if ( WPMAP_GEOSEARCH === 1 )
+		wp_enqueue_style( 'wpmap-lgeosearch',plugins_url( 'L.GeoSearch/style/l.geosearch.css' , __FILE__) );
+
 } // end register load map styles
 
 // Register and load scripts
@@ -82,21 +97,55 @@ function wpmap_register_load_scripts() {
 		TRUE
 	);
 	wp_enqueue_script(
-		'wpmap-js',
-		plugins_url( 'js/map.js' , __FILE__),
+		'leaflet-hash',
+		plugins_url( 'js/leaflet-hash.js' , __FILE__),
 		array( 'leaflet-js' ),
-		'',
 		'0.1',
 		TRUE
 	);
 	wp_enqueue_script(
-		'leaflet-hash',
-		plugins_url( 'js/leaflet-hash.js' , __FILE__),
-		array( 'wpmap-js' ),
+		'wpmap-js',
+		plugins_url( 'js/map.js' , __FILE__),
+		array( 'leaflet-hash' ),
+		'',
 		'0.1',
 		TRUE
 	);
 } // end register load map scripts
+
+// Load scripts for L.GeoSearch module
+function wpmap_geosearch_register_load_scripts() {
+	wp_enqueue_script(
+		'leaflet-lgeosearch',
+		plugins_url( 'L.GeoSearch/js/l.control.geosearch.js' , __FILE__),
+		array('leaflet-js'),
+		'0.1',
+		TRUE
+	);
+	wp_enqueue_script(
+		'leaflet-lgeosearch-osm',
+		plugins_url( 'L.GeoSearch/js/l.geosearch.provider.openstreetmap.js' , __FILE__),
+		array('leaflet-lgeosearch'),
+		'0.1',
+		TRUE
+	);
+	wp_register_script(
+		'getplace-js',
+		plugins_url( 'js/getplace.js' , __FILE__),
+		array('leaflet-lgeosearch-osm'),
+		'0.1',
+		TRUE
+	);
+	// Localize the script with new data
+	$geosearch_options = array(
+	 	'echo' => WPMAP_GEOSEARCH_ECHOED,
+		'lat_id' => WPMAP_GEOSEARCH_LAT_ID,
+		'lon_id' => WPMAP_GEOSEARCH_LON_ID
+	);
+	wp_localize_script( 'getplace-js', 'geosearchOptions', $geosearch_options );
+	wp_enqueue_script( 'getplace-js' );
+
+}
 
 // create map data table in db
 global $wpmap_db_version;
@@ -141,7 +190,23 @@ function wpmap_update_db_table() {
 
 // Geocoding script using Nominatim http://nominatim.openstreetmap.org/
 // to get coordinates using City, Country, street name, house number and Postal Code
-function wpmap_geocoding( $post_id ) {
+function wpmap_geocoding( $country='',$state='',$street_name='',$house_number='',$postal_code='' ) {
+	// use nominatim geocoding service to get coords
+	$results_json = file_get_contents("http://nominatim.openstreetmap.org/search?format=json&country=".$country."&city=".$city."&state=".$state."&street=".$house_number."%20".$street_name."&postalcode=".$postal_code."&limit=1");
+	$results = json_decode($results_json,TRUE); // if second parameter is set to TRUE, the output is ass. array
+
+	if ( !array_key_exists('0',$results) ) {
+		$results_json = file_get_contents("http://nominatim.openstreetmap.org/search?format=json&country=".$country."&city=".$city."&limit=1");
+		$results = json_decode($results_json,TRUE);
+	}
+
+	if ( array_key_exists('0',$results) )
+		return $results[0];
+	else return;
+}
+
+// save post coords got by geocoding city, address...
+function wpmap_save_post_coords( $post_id ) {
 
 	global $wpdb;
 
@@ -153,38 +218,33 @@ function wpmap_geocoding( $post_id ) {
 	$country = urlencode(get_post_meta( $post_id, WPMAP_COUNTRY, true ));
 	if ( $city != '' || $country != '' ) {
 
-		// do geocoding
 		$state = urlencode(get_post_meta( $post_id, WPMAP_STREETNAME, true ));
 		$street_name = urlencode(get_post_meta( $post_id, WPMAP_STREETNAME, true ));
 		$house_number = urlencode(get_post_meta( $post_id, WPMAP_HOUSENUMBER, true ));
 		$postal_code = urlencode(get_post_meta( $post_id, WPMAP_POSTALCODE, true ));
-		// use nominatim geocoding service to get coords
-		$results_json = file_get_contents("http://nominatim.openstreetmap.org/search?format=json&country=".$country."&city=".$city."&state=".$state."&street=".$house_number."%20".$street_name."&postalcode=".$postal_code."&limit=1");
-		$results = json_decode($results_json,TRUE); // if second parameter is set to TRUE, the output is ass. array
+		// do geocoding
+		$result = wpmap_geocoding($country,$state,$street_name,$house_number,$postal_code);
 
-		if ( !array_key_exists('0',$results) ) {
-			$results_json = file_get_contents("http://nominatim.openstreetmap.org/search?format=json&country=".$country."&city=".$city."&limit=1");
-			$results = json_decode($results_json,TRUE);
-		}
+		if ( !array_key_exists('lat',$result) ) return;
 
 		// do the insert in db
 		$table = $wpdb->prefix . "wpmap"; 
-		$lat = $results[0]['lat'];
-		$lon = $results[0]['lon'];
+		$lat = $result['lat'];
+		$lon = $result['lon'];
 
-			// preparing data to insert
-			$data = array( 
-				//'id' => is autoincrement
-				'post_id' => $post_id,
-				'lat' => $lat,
-				'lon' => $lon
-			);
-			$format = array(
-				//'%d',
-				'%d',
-				'%f',
-				'%f'
-			);
+		// preparing data to insert
+		$data = array( 
+			//'id' => is autoincrement
+			'post_id' => $post_id,
+			'lat' => $lat,
+			'lon' => $lon
+		);
+		$format = array(
+			//'%d',
+			'%d',
+			'%f',
+			'%f'
+		);
 
 		$dbquery = "SELECT post_id FROM $table WHERE post_id='$post_id'";
 		if ( $wpdb->get_row($dbquery,OBJECT) == NULL && $lat != '' && $lon != '' ) {
@@ -214,6 +274,11 @@ function wpmap_delete_geocoding( $post_id ) {
 	$wpdb->delete( $table, $where, $where_format = null );	
 
 } // END delete row script
+
+function wpmap_geosearch() {
+
+	wpmap_geosearch_register_load_scripts();
+}
 
 // wpmap shortcode
 add_shortcode('wpmap', 'wpmap_shortcode');
@@ -249,8 +314,13 @@ function wpmap_shortcode($atts) {
 		'marker_radius' => '15',
 		'marker_opacity' => '0.8',
 		'marker_fillOpacity' => '0.8',
+		// marker style
+		'geosearch' => '1',
 		
 	), $atts ) );
+	if ( $geosearch == '1' )
+		wpmap_geosearch();
+
 	$layers = "'".str_replace(",","','",$layers)."'";
 	$colors = "'".str_replace(",","','",$colors)."'";
 	$map_style = "";

@@ -1,0 +1,50 @@
+.leaflet-center {
+	width: 50%;
+	left: 25%;
+	z-index: 999;
+}
+.leaflet-control-geosearch {
+	margin: 10px 0 0 0;
+	width: 100%;
+}
+.leaflet-control-geosearch input#leaflet-control-geosearch-qry {
+	width: 100%;
+	padding: 0;
+	text-indent: 8px;
+	background: rgba(255, 255, 255, 0.75);			
+	border: none;
+	border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	font: bold 1em/2em sans-serif;
+}
+.leaflet-control-geosearch ul {
+	border-radius: 4px;
+	background: none repeat scroll 0 0 rgba(0, 0, 0, 0.25);
+	padding: 5px;
+	width: 100%;
+	height: auto;
+}
+.leaflet-control-geosearch-msg ul {
+	list-style: none;
+	display: none;
+	height: auto;
+	background: none;
+	padding: 0;
+}
+.leaflet-control-geosearch ul li {
+	background: none repeat scroll 0 0 rgba(255, 255, 255, 0.75);
+    border-radius: 4px;
+    margin: 2px 0;
+    padding: 4px;
+    font: 1em/2em sans-serif;
+    text-indent: 4px;
+}
+.wpmap-coords-control {
+	background-color: rgba(255,255,255,0.75);
+	border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	font: bold 1em/2em sans-serif;
+	padding: 5px;
+}
