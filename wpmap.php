@@ -87,7 +87,8 @@ add_action( 'plugins_loaded', 'wpmap_update_db_table' );
 
 // Register and load styles
 function wpmap_register_load_styles() {
-	wp_enqueue_style( 'leaflet-css','http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css' );
+	//wp_enqueue_style( 'leaflet-css','http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css' );
+	wp_enqueue_style( 'leaflet-css',plugins_url( 'leaflet/leaflet.css' , __FILE__) );
 	wp_enqueue_style( 'wpmap-css',plugins_url( 'style/map.css' , __FILE__) );
 	// L.GeoSearch MODULE
 	if ( WPMAP_GEOSEARCH === 1 )
@@ -99,9 +100,10 @@ function wpmap_register_load_styles() {
 function wpmap_register_load_scripts() {
 	wp_enqueue_script(
 		'leaflet-js',
-		'http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js',
+		//'http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js',
+		plugins_url( 'leaflet/leaflet.js' , __FILE__),
 		array('jquery'),
-		'0.7.2',
+		'1.0.3',
 		TRUE
 	);
 	wp_enqueue_script(
