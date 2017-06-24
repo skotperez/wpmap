@@ -4,11 +4,19 @@ Plugin Name: WPMap
 Description: Put your content in a map. This plugin works using OpenStreetMaps and Leaflet.
 Version: 0.4
 Author: montera34
-Author URI: http://montera34.com
+Author URI: https://montera34.com
 License: GPLv2+
 */
 
+$ver = "0.4";
+
 include "wpmap-config.php";
+
+if (!defined('WPMAP_LAT'))
+    define('WPMAP_LAT', $wpmap_lat);
+
+if (!defined('WPMAP_LON'))
+    define('WPMAP_LON', $wpmap_lon);
 
 if (!defined('WPMAP_COUNTRY'))
     define('WPMAP_COUNTRY', $wpmap_country);
@@ -100,15 +108,14 @@ function wpmap_register_load_scripts() {
 		'leaflet-hash',
 		plugins_url( 'js/leaflet-hash.js' , __FILE__),
 		array( 'leaflet-js' ),
-		'0.1',
+		NULL,
 		TRUE
 	);
 	wp_enqueue_script(
 		'wpmap-js',
 		plugins_url( 'js/map.js' , __FILE__),
 		array( 'leaflet-hash' ),
-		'',
-		'0.1',
+		$ver,
 		TRUE
 	);
 } // end register load map scripts
@@ -129,7 +136,7 @@ function wpmap_geosearch_register_load_scripts() {
 		'0.1',
 		TRUE
 	);
-	wp_register_script(
+	wp_enqueue_script(
 		'getplace-js',
 		plugins_url( 'js/getplace.js' , __FILE__),
 		array('leaflet-lgeosearch-osm'),
@@ -143,7 +150,6 @@ function wpmap_geosearch_register_load_scripts() {
 		'lon_id' => WPMAP_GEOSEARCH_LON_ID
 	);
 	wp_localize_script( 'getplace-js', 'geosearchOptions', $geosearch_options );
-	wp_enqueue_script( 'getplace-js' );
 
 }
 
@@ -214,23 +220,31 @@ function wpmap_save_post_coords( $post_id ) {
 	if ( wp_is_post_revision( $post_id ) )
 		return;
 
+	$lat = get_post_meta( $post_id, WPMAP_LAT, true );
+	$lon = get_post_meta( $post_id, WPMAP_LON, true );
 	$city = urlencode(get_post_meta( $post_id, WPMAP_CITY, true ));
 	$country = urlencode(get_post_meta( $post_id, WPMAP_COUNTRY, true ));
-	if ( $city != '' || $country != '' ) {
+	if ( $city != '' || $country != '' || $lat != '' && $lon != '' ) {
 
 		$state = urlencode(get_post_meta( $post_id, WPMAP_STREETNAME, true ));
 		$street_name = urlencode(get_post_meta( $post_id, WPMAP_STREETNAME, true ));
 		$house_number = urlencode(get_post_meta( $post_id, WPMAP_HOUSENUMBER, true ));
 		$postal_code = urlencode(get_post_meta( $post_id, WPMAP_POSTALCODE, true ));
-		// do geocoding
-		$result = wpmap_geocoding($country,$state,$street_name,$house_number,$postal_code);
+		// normally do geocoding
+		// but
+		// if lat and lon fields are filled in
+		// there is no need to do it
+		// just copy the values to wpmap table
+		if ( $lat == '' && $lon == '' ) {
+			$result = wpmap_geocoding($country,$state,$street_name,$house_number,$postal_code);
 
-		if ( !array_key_exists('lat',$result) ) return;
+			if ( !array_key_exists('lat',$result) ) return;
+			$lat = $result['lat'];
+			$lon = $result['lon'];
+		}
 
 		// do the insert in db
 		$table = $wpdb->prefix . "wpmap"; 
-		$lat = $result['lat'];
-		$lon = $result['lon'];
 
 		// preparing data to insert
 		$data = array( 
@@ -259,7 +273,7 @@ function wpmap_save_post_coords( $post_id ) {
 
 		} // end if there is no coords for this post id
 
-	} // if city and country are not empty
+	} // if city and country are not empty or 
 
 } // END geocoding script
 
@@ -361,15 +375,37 @@ function wpmap_shortcode($atts) {
 // show map function
 function wpmap_showmap( $args ) {
 	wpmap_register_load_scripts();
-	$parameters = array("post_type","post_status","post_in","post_not_in","meta_key","meta_value","term_slug","layers_by","layers","colors","default_color","center_lat","center_lon","zoom_ini","zoom_min","zoom_max","map_width","map_height","popup_text","popup_max_width","popup_max_height",'marker_radius','marker_opacity','marker_fillOpacity');
-	$defaults = array("","publish","","","","","","","","","#000000",WPMAP_MAP_LAT,WPMAP_MAP_LON,WPMAP_INI_ZOOM,WPMAP_MIN_ZOOM,WPMAP_MAX_ZOOM,"","300","300","15","0.8","0.8");
-	$count = 0;
-	foreach ( $parameters as $parameter ) {
-		if ( $args[$parameter] == null ) { $args[$parameter] = $defaults[$count]; }
-		if ( $parameter == 'layers' || $parameter == 'colors' ) {
-			$args[$parameter] = "'".str_replace(",","','",$args[$parameter])."'";
+	$parameters = array(
+		"post_type" => '',
+		"post_status" => 'publish',
+		"post_in" => '',
+		"post_not_in" => '',
+		"meta_key" => '',
+		"meta_value" => '',
+		"term_slug" => '',
+		"layers_by" => '',
+		"layers" => '',
+		"colors" => '',
+		"default_color" => '#000',
+		"center_lat" => WPMAP_MAP_LAT,
+		"center_lon" => WPMAP_MAP_LON,
+		"zoom_ini" => WPMAP_INI_ZOOM,
+		"zoom_min" => WPMAP_MIN_ZOOM,
+		"zoom_max" => WPMAP_MAX_ZOOM,
+		"map_width" => '100%',
+		"map_height" => '300px',
+		"popup_text" => '',
+		"popup_max_width" => '300',
+		"popup_max_height" => '200',
+		'marker_radius' => '15',
+		'marker_opacity' => '0.8',
+		'marker_fillOpacity' => '0.8'
+	);
+	foreach ( $parameters as $k => $param ) {
+		if ( !array_key_exists($k,$args) ) { $args[$k] = $param; }
+		if ( $k == 'layers' || $k == 'colors' ) {
+			$args[$k] = "'".str_replace(",","','",$args[$k])."'";
 		}
-		$count++;
 	}
 	$map_style = "";
 	if ( $map_width != '' ) { $map_style .= "width:".$map_width.";"; }
@@ -394,12 +430,12 @@ function wpmap_showmap( $args ) {
 		var initialZoomLevel = {$args['zoom_ini']};
 		var minZoomLevel = {$args['zoom_min']};
 		var maxZoomLevel = {$args['zoom_max']};
-		var popupText = '{$args['popup_text']};
-		var popupMaxWidth = '{$args['popup_max_width']};
-		var popupMaxHeight = '{$args['popup_max_height']};
-		var markerRadius = '{$args['marker_radius']};
-		var markerOpacity = '{$args['marker_opacity']};
-		var markerFillOpacity = '{$args['marker_fillOpacity']};
+		var popupText = '{$args['popup_text']}';
+		var popupMaxWidth = '{$args['popup_max_width']}';
+		var popupMaxHeight = '{$args['popup_max_height']}';
+		var markerRadius = '{$args['marker_radius']}';
+		var markerOpacity = '{$args['marker_opacity']}';
+		var markerFillOpacity = '{$args['marker_fillOpacity']}';
 		var ajaxUrl = '".WPMAP_AJAX."';
 		</script>
 	";
@@ -538,7 +574,8 @@ function wpmap_get_map_data_callback() {
 		$prop['perma'] = get_permalink($row['ID']);
 		if ( $popup_text == 'excerpt' ) { $post_desc = wp_trim_words( $row['post_content'], 55 ); }
 		else { $post_desc = $row['post_content']; }
-		$prop['desc'] = apply_filters('the_content', utf8_encode($post_desc));
+		//$prop['desc'] = apply_filters('the_content', utf8_encode($post_desc));
+		$prop['desc'] = apply_filters('the_content', $post_desc);
 		if ( $layer_by != '' ) { $prop['layer'] = $row[$layer_by]; }
 	
 		$f=array();

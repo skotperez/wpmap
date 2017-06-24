@@ -1,5 +1,7 @@
 <?php
 /* EDIT THIS VARS TO CONFIG THE PLUGIN */
+$wpmap_lat = "lat"; // custom field that stores latitude
+$wpmap_lon = "lon"; // custom field that stores longitude
 $wpmap_country = "country"; // custom field that stores country
 $wpmap_city = "city"; // custom field that stores city
 $wpmap_state = "state"; // custom field that stores state
