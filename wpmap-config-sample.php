@@ -8,6 +8,7 @@ $wpmap_state = "state"; // custom field that stores state
 $wpmap_street = "streetname"; // custom field that stores street name
 $wpmap_number = "housenumber"; // custom field that stores house number
 $wpmap_code = "postalcode"; // custom field that stores postal code
+$wpmap_icon = 'icon'; // custom field that stores icon for each content
 $default_start_lat = '42.863690'; // default latitude for map center
 $default_start_lon = '1.200625'; // default longitude for map center
 $default_zoom_level = 10; // default initial zoom level: between 1 and 19

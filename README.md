@@ -1,7 +1,7 @@
 wpmap
 =====
 
-Latest version release: 0.41
+Latest version release: 0.42
 
 wpmap plugin lets you show in a map posts and other custom post types in your Wordpress posts and pages.
 
@@ -13,6 +13,9 @@ This is a very alpha version of wpmap. Things to be considered:
 + This plugin may not suite your needs.
 
 ## Changelog
+
+### v0.42
++ New parameters in both map shortcode and function to define markers as icons for each map instance: default_icon and icons. New configuration variable to define custom field that stores icon URL for each content.
 
 ### v0.41
 + New parameters in both map shortcode and function to define markers style in each map instance: marker_radius, marker_opacity and marker_fillOpacity.
@@ -46,43 +49,46 @@ If you want to show the map inside the content of your post or pages, you can us
 You can pass the following attributes, all of them optional, to the shortcode:
 
 + **Filters**. This group of attributes will limit the posts to show in the map and they work in a similar way to WordPress Loop.
- + **post_type**. Post types to show in the map. Default: *any*
- + **post_status**. Post statuses to show in the map. Default: *any*.
- + **post_in**. Post IDs to include in the map. Default: *all*.
- + **post_not_in**. Post IDs to exclude from the map. Default: *none*.
- + **meta_key**. List of custom meta keys to show in the map. Default: *all*.
- + **meta_values**. List of custom meta values to show in the map. It could be from different meta keys. Default: *all*.
- + **term_slug**. List of terms to show in the map. It could be from different taxonomies. Default: *all*.
+ + `post_type`. Post types to show in the map. Default: *any*
+ + `post_status`. Post statuses to show in the map. Default: *any*.
+ + `post_in`. Post IDs to include in the map. Default: *all*.
+ + `post_not_in`. Post IDs to exclude from the map. Default: *none*.
+ + `meta_key`. List of custom meta keys to show in the map. Default: *all*.
+ + `meta_values`. List of custom meta values to show in the map. It could be from different meta keys. Default: *all*.
+ + `term_slug`. List of terms to show in the map. It could be from different taxonomies. Default: *all*.
 + **Layers**. This group of attributes will define the layers of markers in the map.
- + **layers_by**. The criteria to group the markers in layers. Possible values: post_type, post_status, meta_key, meta_value, term_slug. Default: *none*
- + **layers**. The layers to show in the map. Default: *none*
- + **colors**. The color for each layers above, in order. Default: *#000000*
- + **default_color**. The default color for layers. Default: *#000000*
+ + `layers_by`. The criteria to group the markers in layers. Possible values: post_type, post_status, meta_key, meta_value, term_slug. Default: *none*
+ + `layers`. The layers to show in the map. Default: *none*
+ + `colors`. The color for each layers above, in order. Default: *#000000*
+ + `icons`. The icon filename for each layers above, in order. Default: *NULL*
+ + `default_color`. The default color for layers. Default: *#000000*
+ + `default_icon`. The default icon. See `$wpmap_icons_path` variable in `wpmap-config.php`. Default: *icon.png*
 + **Map config**. This group of attributes will set up the map itself.
- + **center_lat**. Latitude for the center of the map. Default: *42.863690*
- + **center_lon**. Longitude for the center of the map. Default: *1.200625*
- + **zoom_ini**. Initial zoom level: between 1 and 19. Default: *10
- + **zoom_min**. Minimal (farest) zoom level: between 1 and 19. Default: *5*
- + **zoom_max**. Maximal (closer) zoom level: between 1 and 19. Default: *19*
- + **map_width**. Map container width. It has to include units (px, %, em). Default: *100%*
- + **map_height**. Map container height. It has to include units (px, %, em). Default: *500px*
+ + `center_lat`. Latitude for the center of the map. Default: *42.863690*
+ + `center_lon`. Longitude for the center of the map. Default: *1.200625*
+ + `zoom_ini`. Initial zoom level: between 1 and 19. Default: *10*
+ + `zoom_min`. Minimal (farest) zoom level: between 1 and 19. Default: *5*
+ + `zoom_max`. Maximal (closer) zoom level: between 1 and 19. Default: *19*
+ + `map_width`. Map container width. It has to include units (px, %, em). Default: *100%*
+ + `map_height`. Map container height. It has to include units (px, %, em). Default: *500px*
 + **Popup content**. This group of attributes will define the info to show in the marker popup.
- + **popup_text**. Possible values: content or excerpt. Default: *content*.
- + **popup_max_width**. Max width of the popup, without units. Default: *300*.
- + **popup_max_height**. Max height of the popup, without units. Default: *300*.
+ + `popup_text`. Possible values: content or excerpt. Default: *content*.
+ + `popup_max_width`. Max width of the popup, without units. Default: *300*.
+ + `popup_max_height`. Max height of the popup, without units. Default: *300*.
 + **Markers style**. This group of attributes will define the style of the markers.
- + **marker_radius**. In pixels. Default: *15*.
- + **marker_opacity**. Opacity for the marker border. Works like opacity CSS property. Default: *0.8*.
- + **marker_fillOpacity**. Opacity for the circle. Works like opacity CSS property. Default: *0.8*.
+ + `marker_radius`. In pixels. Default: *15*.
+ + `marker_opacity`. Opacity for the marker border. Works like opacity CSS property. Default: *0.8*.
+ + `marker_fillOpacity`. Opacity for the circle. Works like opacity CSS property. Default: *0.8*.
+ + `icon_size`. Width and height comma separated par of values for icons in pixels. Default: *40,64*.
 
 Filter are not all of them compatible:
-+ post_in must to be alone.
-+ term_slug is not compatible with meta_value or meta_key.
-+ meta_key and meta_value will not work together.
++ `post_in` must to be used alone.
++ `term_slug` is not compatible with `meta_value` or meta_key.
++ `meta_key` and `meta_value` will not work together.
 
 ### Examples
 
-`[wpmap post_status="publish" post_post_type="post,page" post_not_in="12,18" layers_by="post_type" layers="post,page" colors="#f00,#0f0" center_lat="40.416705" center_lon="-3.703582"]`
+`[wpmap post_status="publish" post_type="post,page" post_not_in="12,18" layers_by="post_type" layers="post,page" colors="#f00,#0f0" center_lat="40.416705" center_lon="-3.703582"]`
 
 It will display all publish posts from 'post' and 'page' post types, except posts with ID 12 and 18. It will create two layers, one for posts, one for pages. Markers in posts layer will be red and markers in pages layer will be green. The map will be center in Madrid.
 

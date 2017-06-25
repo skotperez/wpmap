@@ -2,18 +2,21 @@
 /*
 Plugin Name: WPMap
 Description: Put your content in a map. This plugin works using OpenStreetMaps and Leaflet.
-Version: 0.4
+Version: 0.42
 Author: montera34
 Author URI: https://montera34.com
 License: GPLv2+
 */
 
-$ver = "0.4";
+$ver = "0.42";
 
 include "wpmap-config.php";
 
 if (!defined('WPMAP_ICONS_PATH'))
     define('WPMAP_ICONS_PATH', $wpmap_icons_path);
+
+if (!defined('WPMAP_ICON'))
+    define('WPMAP_ICON', $wpmap_icon);
 
 if (!defined('WPMAP_LAT'))
     define('WPMAP_LAT', $wpmap_lat);
@@ -299,87 +302,7 @@ function wpmap_geosearch() {
 	wpmap_geosearch_register_load_scripts();
 }
 
-// wpmap shortcode
-add_shortcode('wpmap', 'wpmap_shortcode');
-function wpmap_shortcode($atts) {
-	wpmap_register_load_scripts();
-	extract( shortcode_atts( array(
-		// query filters
-		'post_type' => '',
-		'post_status' => 'publish',
-		'post_in' => '',
-		'post_not_in' => '',
-		'meta_key' => '',
-		'meta_value' => '',
-		'term_slug' => '',
-		// layers
-		'layers_by' => '',
-		'layers' => '',
-		'colors' => '',
-		'default_color' => "#000000",
-		// map vars
-		'center_lat' => WPMAP_MAP_LAT,
-		'center_lon' => WPMAP_MAP_LON,
-		'zoom_ini' => WPMAP_INI_ZOOM,
-		'zoom_min' => WPMAP_MIN_ZOOM,
-		'zoom_max' => WPMAP_MAX_ZOOM,
-		'map_width' => '',
-		'map_height' => '',
-		// popup
-		'popup_text' => '',
-		'popup_max_width' => '100%',
-		'popup_max_height' => '300',
-		// markers
-		'marker_radius' => '15',
-		'marker_opacity' => '0.8',
-		'marker_fillOpacity' => '0.8',
-		// activate geosearch on click
-		'geosearch' => '1',
-		
-	), $atts ) );
-	if ( $geosearch == '1' )
-		wpmap_geosearch();
-
-	$layers = "'".str_replace(",","','",$layers)."'";
-	$colors = "'".str_replace(",","','",$colors)."'";
-	$map_style = "";
-	if ( $map_width != '' ) { $map_style .= "width:".$map_width.";"; }
-	if ( $map_height != '' ) { $map_style .= "height:".$map_height.";"; }
-	if ( $map_style != '' ) { $map_style = " style='".$map_style."'"; }
-	$the_map = "
-		<div id='map'".$map_style."></div>
-		<script>
-		var pType = '$post_type';
-		var pStatus = '$post_status';
-		var pIn = '$post_in';
-		var pNotIn = '$post_not_in';
-		var mKeys = '$meta_key';
-		var mValues = '$meta_value';
-		var tSlugs = '$term_slug';
-		var layersBy = '$layers_by';
-		var layers = [$layers];
-		var colors = [$colors];
-		var defaultColor = '$default_color';
-		var centerLat = '$center_lat';
-		var centerLon = '$center_lon';
-		var initialZoomLevel = $zoom_ini;
-		var minZoomLevel = $zoom_min;
-		var maxZoomLevel = $zoom_max;
-		var popupText = '$popup_text';
-		var popupMaxWidth = '$popup_max_width';
-		var popupMaxHeight = '$popup_max_height';
-		var markerRadius = '$marker_radius';
-		var markerOpacity = '$marker_opacity';
-		var markerFillOpacity = '$marker_fillOpacity';
-		var ajaxUrl = '".WPMAP_AJAX."';
-		</script>
-	";
-	return $the_map;
-} // END shortcode
-
-// show map function
-function wpmap_showmap( $args ) {
-	wpmap_register_load_scripts();
+// get map function and shortcode parameters
 	$parameters = array(
 		// query filters
 		"post_type" => '',
@@ -417,6 +340,23 @@ function wpmap_showmap( $args ) {
 		// activate geosearch on click
 		'geosearch' => 1
 	);
+
+// wpmap shortcode
+add_shortcode('wpmap', 'wpmap_shortcode');
+function wpmap_shortcode($atts) {
+	wpmap_register_load_scripts();
+	global $parameters;
+	extract( shortcode_atts( $parameters, $atts ) );
+
+	wpmap_showmap($atts);
+
+} // END shortcode
+
+// show map function
+function wpmap_showmap( $args ) {
+	wpmap_register_load_scripts();
+
+	global $parameters;
 
 	foreach ( $parameters as $k => $param ) {
 		if ( !array_key_exists($k,$args) ) { $args[$k] = $param; }
@@ -464,7 +404,6 @@ function wpmap_showmap( $args ) {
 		var markerRadius = '{$args['marker_radius']}';
 		var markerOpacity = '{$args['marker_opacity']}';
 		var markerFillOpacity = '{$args['marker_fillOpacity']}';
-		var iconDefault = '{$args['icon_default']}';
 		var iconSize = '{$args['icon_size']}';
 		var ajaxUrl = '".WPMAP_AJAX."';
 		</script>
@@ -607,7 +546,7 @@ function wpmap_get_map_data_callback() {
 		//$prop['desc'] = apply_filters('the_content', utf8_encode($post_desc));
 		$prop['desc'] = apply_filters('the_content', $post_desc);
 		if ( $layer_by != '' ) { $prop['layer'] = $row[$layer_by]; }
-		$icon_data = get_post_meta($row['ID'],'_garden_icon',true);
+		$icon_data = get_post_meta($row['ID'],WPMAP_ICON,true);
 		$prop['icon'] = $icon_data['guid'];
 	
 		$f=array();
