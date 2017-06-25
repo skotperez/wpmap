@@ -33,11 +33,54 @@ var lyrPlq;	// the geoJson layer to display plaques with
 	// geojson layer
 	lyrPlq = L.geoJson(null, {
 		// marker style
-		style: setIcon,
+		//style: setIcon
 		// marker function
 		pointToLayer: function (feature, ll) {
-			//return L.marker(latlng);
-			return L.circleMarker(ll);
+			if ( markerType == 'icon' ) {
+				iconUrl = feature.properties.icon;
+				if ( iconUrl == '' && icons != '' ) {
+					jQuery.each( layers, function ( i,layer ) {
+						if (feature.properties.layer==layer) {
+							iconUrl = icons[i];
+							return false; // this break out of the each
+						}
+					});
+				}
+				if ( iconUrl == '' ) { iconUrl = defaultIcon; }
+				
+				var iconStyle = new L.icon({
+					iconUrl: iconUrl,
+					//iconSize: [70, 96],
+					iconAnchor: [22, 94],
+					popupAnchor: [-3, -76],
+					//shadowUrl: 'my-icon-shadow.png',
+					//shadowSize: [68, 95],
+					//shadowAnchor: [22, 94]
+				});
+				return L.marker(ll, {icon: iconStyle});
+
+			} else {
+				var pointStyle = {
+				    radius: markerRadius,
+				    weight: 1,
+				    opacity: markerOpacity,
+				    fillOpacity: markerFillOpacity
+				};
+			
+				jQuery.each( layers, function ( i,layer ) {
+					if (feature.properties.layer==layer) {
+						colorHex = colors[i];
+						pointStyle.fillColor = colorHex,
+						pointStyle.color = colorHex
+						return false; // this break out of the each
+					}
+				});
+				if ( !pointStyle.color ) {
+					pointStyle.color = defaultColor;
+					pointStyle.fillcolor = defaultColor;
+				}
+				return L.circleMarker(ll,pointStyle);
+			}
 		},
 		// popup function
 		onEachFeature: onEachFeature,
@@ -78,24 +121,34 @@ function whenMapMoves(e) {
 
 function setIcon(feature) {
 	var pointStyle = {
-	    radius: markerRadius,
-	    weight: 1,
-	    opacity: markerOpacity,
-	    fillOpacity: markerFillOpacity
+		//iconUrl: 'http://huertos.wpmap.localhost/wp-content/uploads/sites/4/2017/06/icon.huerto.01.png',
+		iconUrl: feature.properties.icon,
+	    iconSize: [70, 96],
+	    iconAnchor: [22, 94],
+	    popupAnchor: [-3, -76],
+	    //shadowUrl: 'my-icon-shadow.png',
+	    //shadowSize: [68, 95],
+	    //shadowAnchor: [22, 94]
 	};
-
-	jQuery.each( layers, function ( i,layer ) {
-		if (feature.properties.layer==layer) {
-			colorHex = colors[i];
-			pointStyle.fillColor = colorHex,
-			pointStyle.color = colorHex
-			return false; // this break out of the each
-		}
-	});
-	if ( !pointStyle.color ) {
-		pointStyle.color = defaultColor;
-		pointStyle.fillcolor = defaultColor;
-	}
+//	var pointStyle = {
+//	    radius: markerRadius,
+//	    weight: 1,
+//	    opacity: markerOpacity,
+//	    fillOpacity: markerFillOpacity
+//	};
+//
+//	jQuery.each( layers, function ( i,layer ) {
+//		if (feature.properties.layer==layer) {
+//			colorHex = colors[i];
+//			pointStyle.fillColor = colorHex,
+//			pointStyle.color = colorHex
+//			return false; // this break out of the each
+//		}
+//	});
+//	if ( !pointStyle.color ) {
+//		pointStyle.color = defaultColor;
+//		pointStyle.fillcolor = defaultColor;
+//	}
 	return pointStyle;
 }
 

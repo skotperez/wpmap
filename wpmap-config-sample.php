@@ -13,6 +13,7 @@ $default_start_lon = '1.200625'; // default longitude for map center
 $default_zoom_level = 10; // default initial zoom level: between 1 and 19
 $default_min_zoom = 5; // default minimal (farest) zoom level: between 1 and 19
 $default_max_zoom = 19; // default maximal (closer) zoom level: between 1 and 19
+$wpmap_icons_path = plugins_url( 'images/' , __FILE__); // path for marker icons
 // geosearch module
 $geosearch_enabled = 1; // 1 to enable L.GeoSearch leaflet plugin. 0 to disable it
 $geosearch_echoed = 1; // 1 to echo lat/lon values in a popup. 0 to disable the popup

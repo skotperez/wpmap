@@ -12,6 +12,9 @@ $ver = "0.4";
 
 include "wpmap-config.php";
 
+if (!defined('WPMAP_ICONS_PATH'))
+    define('WPMAP_ICONS_PATH', $wpmap_icons_path);
+
 if (!defined('WPMAP_LAT'))
     define('WPMAP_LAT', $wpmap_lat);
 
@@ -322,15 +325,15 @@ function wpmap_shortcode($atts) {
 		'zoom_max' => WPMAP_MAX_ZOOM,
 		'map_width' => '',
 		'map_height' => '',
-		// popup content
+		// popup
 		'popup_text' => '',
-		'popup_max_width' => '300',
+		'popup_max_width' => '100%',
 		'popup_max_height' => '300',
-		// marker style
+		// markers
 		'marker_radius' => '15',
 		'marker_opacity' => '0.8',
 		'marker_fillOpacity' => '0.8',
-		// marker style
+		// activate geosearch on click
 		'geosearch' => '1',
 		
 	), $atts ) );
@@ -378,6 +381,7 @@ function wpmap_shortcode($atts) {
 function wpmap_showmap( $args ) {
 	wpmap_register_load_scripts();
 	$parameters = array(
+		// query filters
 		"post_type" => '',
 		"post_status" => 'publish',
 		"post_in" => '',
@@ -385,10 +389,14 @@ function wpmap_showmap( $args ) {
 		"meta_key" => '',
 		"meta_value" => '',
 		"term_slug" => '',
+		// layers control
 		"layers_by" => '',
 		"layers" => '',
 		"colors" => '',
+		"icons" => '',
 		"default_color" => '#000',
+		'default_icon' => 'icon.png',
+		// map config
 		"center_lat" => WPMAP_MAP_LAT,
 		"center_lon" => WPMAP_MAP_LON,
 		"zoom_ini" => WPMAP_INI_ZOOM,
@@ -396,25 +404,40 @@ function wpmap_showmap( $args ) {
 		"zoom_max" => WPMAP_MAX_ZOOM,
 		"map_width" => '100%',
 		"map_height" => '300px',
+		// popup
 		"popup_text" => '',
 		"popup_max_width" => '300',
 		"popup_max_height" => '200',
+		// markers
+		'marker_type' => 'circle', // [circle|icon]
 		'marker_radius' => '15',
 		'marker_opacity' => '0.8',
-		'marker_fillOpacity' => '0.8'
+		'marker_fillOpacity' => '0.8',
+		'icon_size' => '40,64',
+		// activate geosearch on click
+		'geosearch' => 1
 	);
+
 	foreach ( $parameters as $k => $param ) {
 		if ( !array_key_exists($k,$args) ) { $args[$k] = $param; }
 		if ( $k == 'layers' || $k == 'colors' ) {
 			$args[$k] = "'".str_replace(",","','",$args[$k])."'";
+		} elseif ( $k == 'icons' && $param != '' ) {
+			$args[$k] = "'".WPMAP_ICONS_PATH.str_replace(",","','".WPMAP_ICONS_PATH,$args[$k])."'";
 		}
 	}
+
+	// TO DO: width and height styles are overwriten by Leaflet, so they don't work
 	$map_style = "";
 	if ( $map_width != '' ) { $map_style .= "width:".$map_width.";"; }
 	if ( $map_height != '' ) { $map_style .= "height:".$map_height.";"; }
 	if ( $map_style != '' ) { $map_style = " style='".$map_style."'"; }
+
+	if ( $geosearch == '1' )
+		wpmap_geosearch();
+
 	$the_map = "
-		<div id='map'></div>
+		<div id='map'".$map_style."></div>
 		<script>
 		var pType = '{$args['post_type']}';
 		var pStatus = '{$args['post_status']}';
@@ -426,7 +449,9 @@ function wpmap_showmap( $args ) {
 		var layersBy = '{$args['layers_by']}';
 		var layers = [{$args['layers']}];
 		var colors = [{$args['colors']}];
+		var icons = [{$args['icons']}];
 		var defaultColor = '{$args['default_color']}';
+		var defaultIcon = '".WPMAP_ICONS_PATH."{$args['default_icon']}';
 		var centerLat = '{$args['center_lat']}';
 		var centerLon = '{$args['center_lon']}';
 		var initialZoomLevel = {$args['zoom_ini']};
@@ -435,9 +460,12 @@ function wpmap_showmap( $args ) {
 		var popupText = '{$args['popup_text']}';
 		var popupMaxWidth = '{$args['popup_max_width']}';
 		var popupMaxHeight = '{$args['popup_max_height']}';
+		var markerType = '{$args['marker_type']}';
 		var markerRadius = '{$args['marker_radius']}';
 		var markerOpacity = '{$args['marker_opacity']}';
 		var markerFillOpacity = '{$args['marker_fillOpacity']}';
+		var iconDefault = '{$args['icon_default']}';
+		var iconSize = '{$args['icon_size']}';
 		var ajaxUrl = '".WPMAP_AJAX."';
 		</script>
 	";
@@ -579,6 +607,8 @@ function wpmap_get_map_data_callback() {
 		//$prop['desc'] = apply_filters('the_content', utf8_encode($post_desc));
 		$prop['desc'] = apply_filters('the_content', $post_desc);
 		if ( $layer_by != '' ) { $prop['layer'] = $row[$layer_by]; }
+		$icon_data = get_post_meta($row['ID'],'_garden_icon',true);
+		$prop['icon'] = $icon_data['guid'];
 	
 		$f=array();
 		$geom=array();
