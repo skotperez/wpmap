@@ -71,6 +71,9 @@ if (!defined('WPMAP_GEOSEARCH_LAT_ID'))
 if (!defined('WPMAP_GEOSEARCH_LON_ID'))
     define('WPMAP_GEOSEARCH_LON_ID', $geosearch_lon_id);
 
+// SIDEBAR MODULE
+if (!defined('WPMAP_SIDEBAR'))
+    define('WPMAP_SIDEBAR', $sidebar_enabled);
 
 // Hook AJAX requests
 add_action('wp_ajax_nopriv_wpmap_get_map_data','wpmap_get_map_data_callback');
@@ -98,7 +101,10 @@ function wpmap_register_load_styles() {
 	wp_enqueue_style( 'wpmap-css',plugins_url( 'style/map.css' , __FILE__) );
 	// L.GeoSearch MODULE
 	if ( WPMAP_GEOSEARCH === 1 )
-		wp_enqueue_style( 'wpmap-lgeosearch',plugins_url( 'L.GeoSearch/style/l.geosearch.css' , __FILE__) );
+		wp_enqueue_style( 'leaflet-geosearch-css',plugins_url( 'L.GeoSearch/style/l.geosearch.css' , __FILE__) );
+	// L.Control.Sidebar MODULE
+	if ( WPMAP_SIDEBAR === 1 )
+		wp_enqueue_style( 'leaflet-sidebar-css',plugins_url( 'L.Control.Sidebar/L.Control.Sidebar.css' , __FILE__) );
 
 } // end register load map styles
 
@@ -119,6 +125,24 @@ function wpmap_register_load_scripts() {
 		NULL,
 		TRUE
 	);
+	// L.Control.Sidebar MODULE
+	if ( WPMAP_SIDEBAR === 1 ) {
+		wp_enqueue_script(
+			'leaflet-sidebar-js',
+			plugins_url( 'L.Control.Sidebar/L.Control.Sidebar.js' , __FILE__),
+			array( 'leaflet-js' ),
+			NULL,
+			TRUE
+		);
+//		wp_enqueue_script(
+//			'wpmap-sidebar-js',
+//			plugins_url( 'js/sidebar.js' , __FILE__),
+//			array( 'wpmap-js' ),
+//			$ver,
+//			TRUE
+//		);
+	}
+
 	wp_enqueue_script(
 		'wpmap-js',
 		plugins_url( 'js/map.js' , __FILE__),
@@ -126,6 +150,7 @@ function wpmap_register_load_scripts() {
 		$ver,
 		TRUE
 	);
+
 } // end register load map scripts
 
 // Load scripts for L.GeoSearch module
@@ -338,7 +363,9 @@ function wpmap_geosearch() {
 		'marker_fillOpacity' => '0.8',
 		'icon_size' => '40,64',
 		// activate geosearch on click
-		'geosearch' => 1
+		'geosearch' => 1,
+		// activate geosearch on click
+		'sidebar' => 1
 	);
 
 // wpmap shortcode
@@ -376,8 +403,11 @@ function wpmap_showmap( $args ) {
 	if ( $geosearch == '1' )
 		wpmap_geosearch();
 
+	$sidebar_out = ( $args['sidebar'] == 1 ) ? '<div id="wpmap-sidebar"></div>' : '';
+
 	$the_map = "
 		<div id='map'".$map_style."></div>
+		".$sidebar_out."
 		<script>
 		var pType = '{$args['post_type']}';
 		var pStatus = '{$args['post_status']}';
@@ -539,6 +569,7 @@ function wpmap_get_map_data_callback() {
 		$lon = $row['lon'];
 	
 		$prop=array();
+		$prop['id'] = $row['ID'];
 		$prop['tit'] = get_the_title($row['ID']);
 		$prop['perma'] = get_permalink($row['ID']);
 		if ( $popup_text == 'excerpt' ) { $post_desc = wp_trim_words( $row['post_content'], 55 ); }

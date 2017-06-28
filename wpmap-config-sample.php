@@ -20,5 +20,7 @@ $geosearch_enabled = 1; // 1 to enable L.GeoSearch leaflet plugin. 0 to disable 
 $geosearch_echoed = 1; // 1 to echo lat/lon values in a popup. 0 to disable the popup
 $geosearch_lat_id = "geosearch-lat"; // DOM element id to get lat value to use in PHP
 $geosearch_lon_id = "geosearch-lon"; // DOM element id to get lon value to use in PHP
+// sidebar module
+$sidebar_enabled = 1; // 1 to enable L.Control.Sibar leaflet plugin. 0 to disable it
 /* STOP EDIT */
 ?>

@@ -27,7 +27,15 @@ var lyrPlq;	// the geoJson layer to display plaques with
 
 	function onEachFeature(feature, layer) {
 		var popupContent = "<h3><a href='" + feature.properties.perma + "'>" + feature.properties.tit + "</a></h3><div>" + feature.properties.desc + "</div>";
-		layer.bindPopup(popupContent,popupStyle);
+		//layer.bindPopup(popupContent,popupStyle);
+		if( window.location.hash == '#'+layer.feature.properties.id ) {
+			sidebar.setContent(popupContent);
+			sidebar.show();
+		}
+		layer.on({
+			click: prepareSidebar,
+		});
+
 	}
 
 	// geojson layer
@@ -108,7 +116,45 @@ var lyrPlq;	// the geoJson layer to display plaques with
 
 	// create the hash url on the browser address line
 	var hash = new L.Hash(map);
-	
+
+	// sidebar
+	var sidebar = L.control.sidebar('wpmap-sidebar', {
+		closeButton: true,
+		position: 'left',
+		autoPan: false
+	});
+	map.addControl(sidebar);
+//	setTimeout(function() {
+//		sidebar.show();
+//	}, 500);
+map.on('click', function () {
+	sidebar.hide();
+	window.location.hash = '';
+})
+L.DomEvent.on(sidebar.getCloseButton(), 'click', function () {
+	window.location.hash = '';
+});
+function sidebarContent(layer) {
+	popupContent = "<h3><a href='" + layer.feature.properties.perma + "'>" + layer.feature.properties.tit + "</a></h3><div>" + layer.feature.properties.desc + "</div>";
+	return popupContent;
+}
+
+function prepareSidebar(e) {
+	var layer = e.target;
+	//resetMarkersStyle(dataLayer);
+	//layer.setStyle(styleClick);
+
+//	if (!L.Browser.ie && !L.Browser.opera) {
+//		layer.bringToFront();
+//	}
+	sidebar.setContent(sidebarContent(layer));
+	if ( !sidebar.isVisible() ) {
+		sidebar.toggle();
+	}
+	window.location.hash = layer.feature.properties.id;
+}
+
+
 	map.on('moveend', whenMapMoves);
 
 	askForPlaques();
@@ -119,38 +165,38 @@ function whenMapMoves(e) {
 	askForPlaques();
 }
 
-function setIcon(feature) {
-	var pointStyle = {
-		//iconUrl: 'http://huertos.wpmap.localhost/wp-content/uploads/sites/4/2017/06/icon.huerto.01.png',
-		iconUrl: feature.properties.icon,
-	    iconSize: [70, 96],
-	    iconAnchor: [22, 94],
-	    popupAnchor: [-3, -76],
-	    //shadowUrl: 'my-icon-shadow.png',
-	    //shadowSize: [68, 95],
-	    //shadowAnchor: [22, 94]
-	};
+//function setIcon(feature) {
 //	var pointStyle = {
-//	    radius: markerRadius,
-//	    weight: 1,
-//	    opacity: markerOpacity,
-//	    fillOpacity: markerFillOpacity
+//		//iconUrl: 'http://huertos.wpmap.localhost/wp-content/uploads/sites/4/2017/06/icon.huerto.01.png',
+//		iconUrl: feature.properties.icon,
+//	    iconSize: [70, 96],
+//	    iconAnchor: [22, 94],
+//	    popupAnchor: [-3, -76],
+//	    //shadowUrl: 'my-icon-shadow.png',
+//	    //shadowSize: [68, 95],
+//	    //shadowAnchor: [22, 94]
 //	};
-//
-//	jQuery.each( layers, function ( i,layer ) {
-//		if (feature.properties.layer==layer) {
-//			colorHex = colors[i];
-//			pointStyle.fillColor = colorHex,
-//			pointStyle.color = colorHex
-//			return false; // this break out of the each
-//		}
-//	});
-//	if ( !pointStyle.color ) {
-//		pointStyle.color = defaultColor;
-//		pointStyle.fillcolor = defaultColor;
-//	}
-	return pointStyle;
-}
+////	var pointStyle = {
+////	    radius: markerRadius,
+////	    weight: 1,
+////	    opacity: markerOpacity,
+////	    fillOpacity: markerFillOpacity
+////	};
+////
+////	jQuery.each( layers, function ( i,layer ) {
+////		if (feature.properties.layer==layer) {
+////			colorHex = colors[i];
+////			pointStyle.fillColor = colorHex,
+////			pointStyle.color = colorHex
+////			return false; // this break out of the each
+////		}
+////	});
+////	if ( !pointStyle.color ) {
+////		pointStyle.color = defaultColor;
+////		pointStyle.fillcolor = defaultColor;
+////	}
+//	return pointStyle;
+//}
 
 function askForPlaques() {
 	//var data='action=wpmap_get_map_data&bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&post_in=' + pIn + '&post_not_in=' + pNotIn + '&meta_key=' + mKeys + '&meta_value=' + mValues + '&term_slug=' + tSlugs + '&layers_by=' + layersBy + '&popup_text=' + popupText;
