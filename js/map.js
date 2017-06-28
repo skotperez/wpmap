@@ -124,36 +124,44 @@ var lyrPlq;	// the geoJson layer to display plaques with
 		autoPan: false
 	});
 	map.addControl(sidebar);
-//	setTimeout(function() {
-//		sidebar.show();
-//	}, 500);
-map.on('click', function () {
-	sidebar.hide();
-	window.location.hash = '';
-})
-L.DomEvent.on(sidebar.getCloseButton(), 'click', function () {
-	window.location.hash = '';
-});
-function sidebarContent(layer) {
-	popupContent = "<h3><a href='" + layer.feature.properties.perma + "'>" + layer.feature.properties.tit + "</a></h3><div>" + layer.feature.properties.desc + "</div>";
-	return popupContent;
-}
 
-function prepareSidebar(e) {
-	var layer = e.target;
-	//resetMarkersStyle(dataLayer);
-	//layer.setStyle(styleClick);
+	// to show sidebar when map loads
+	//setTimeout(function() {
+	//	sidebar.show();
+	//}, 500);
 
-//	if (!L.Browser.ie && !L.Browser.opera) {
-//		layer.bringToFront();
-//	}
-	sidebar.setContent(sidebarContent(layer));
-	if ( !sidebar.isVisible() ) {
-		sidebar.toggle();
+	map.on('click', function () {
+		sidebar.hide();
+		// change URL when close slide
+		// window.location.hash = '';
+	})
+
+	//L.DomEvent.on(sidebar.getCloseButton(), 'click', function () {
+	//	// change URL when close slide
+	//	window.location.hash = '';
+	//});
+
+	function sidebarContent(layer) {
+		popupContent = "<h3><a href='" + layer.feature.properties.perma + "'>" + layer.feature.properties.tit + "</a></h3><div>" + layer.feature.properties.desc + "</div>";
+		return popupContent;
 	}
-	window.location.hash = layer.feature.properties.id;
-}
 
+	function prepareSidebar(e) {
+		var layer = e.target;
+		//resetMarkersStyle(dataLayer);
+		//layer.setStyle(styleClick);
+
+		//if (!L.Browser.ie && !L.Browser.opera) {
+		//layer.bringToFront();
+		//}
+
+		sidebar.setContent(sidebarContent(layer));
+		if ( !sidebar.isVisible() ) {
+			sidebar.toggle();
+		}
+		// change URL when close slide
+		//window.location.hash = layer.feature.properties.id;
+	}
 
 	map.on('moveend', whenMapMoves);
 
