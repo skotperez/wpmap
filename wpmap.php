@@ -42,6 +42,9 @@ if (!defined('WPMAP_HOUSENUMBER'))
 if (!defined('WPMAP_POSTALCODE'))
     define('WPMAP_POSTAL_CODE', $wpmap_code);
 
+if (!defined('WPMAP_FIELDS_IN_MAP'))
+    define('WPMAP_FIELDS_IN_MAP', $wpmap_fields_in_map);
+
 if (!defined('WPMAP_MAP_LAT'))
     define('WPMAP_MAP_LAT', $default_start_lat);
 
@@ -311,7 +314,6 @@ function wpmap_save_post_coords( $post_id ) {
 } // END geocoding script
 
 // Delete row in wp_wpmap when a post is deleted
-////
 function wpmap_delete_geocoding( $post_id ) {
 
 	global $wpdb;
@@ -446,7 +448,7 @@ function wpmap_showmap( $args ) {
 function wpmap_get_map_data_callback() {
 
 	global $wpdb;
-// SET MAP BOUNDS
+	// SET MAP BOUNDS
 	if (array_key_exists('bbox', $_GET) ) {
 		$bbox = sanitize_text_field($_GET['bbox']);
 
@@ -464,7 +466,7 @@ function wpmap_get_map_data_callback() {
 	// split the bbox into it's parts
 	list($left,$bottom,$right,$top)=explode(",",$bbox);
 
-// PREPARE DB QUERY PARAMETERS
+	// PREPARE DB QUERY PARAMETERS
 	$filters = array();
 	foreach ( array(
 		'post_type' => array('post_type','p'),
@@ -507,7 +509,6 @@ function wpmap_get_map_data_callback() {
 		  ON m.post_id = pm.post_id
 		";
 		$extra_field .= ", pm.meta_value, pm.meta_key";
-
 	} elseif ( $term_slug != '' ) { // if terms filters
 		$table_term_rel = $wpdb->prefix."term_relationships";
 		$table_term_tax = $wpdb->prefix."term_taxonomy";
@@ -521,26 +522,31 @@ function wpmap_get_map_data_callback() {
 		  ON tt.term_id = t.term_id
 		";
 		$extra_field .= ", t.name, t.slug";
+	} else {
+		$extra_join = '';
+	}
 
-	} else { $extra_join = ''; }
-
-// MAP LAYERS
+	// MAP LAYERS
 	if (array_key_exists('layers_by', $_GET) ) {
 		$layers_by = sanitize_text_field($_GET['layers_by']); // possible values: post_type, post_status, meta_key, meta_value, term_slug
 		if ( $layers_by == 'term_slug' ) { $layer_by = "slug"; }
 		else { $layer_by = $layers_by; }
-	} else { $layer_by = ""; }
+	} else {
+		$layer_by = "";
+	}
 
-// FIELDS IN POPUP
+	// FIELDS IN POPUP
 	if (array_key_exists('popup_text', $_GET) ) {
 		$popup_text = sanitize_text_field($_GET['popup_text']); // values: content, excerpt
 		//$popup_author = sanitize_text_field($_GET['popup_author']); // values: name
 		//$popup_date = sanitize_text_field($_GET['popup_date']); // values: 
 		//$popup_img = sanitize_text_field($_GET['popup_image']); // values: featured
 
-	} else { $popup_text = ""; }
+	} else {
+		$popup_text = "";
+	}
 		
-// INIT DB QUERY
+	// INIT DB QUERY
 	$table_map = $wpdb->prefix."wpmap";
 	$table_posts = $wpdb->prefix."posts";
 	$sql_query = "
@@ -559,7 +565,7 @@ function wpmap_get_map_data_callback() {
 	";
 	$query_results = $wpdb->get_results( $sql_query , ARRAY_A );
 
-// BUILD GEOJSON RESPONSE
+	// BUILD GEOJSON RESPONSE
 	$response = array(); // place to store the geojson result
 	$features = array(); // array to build up the feature collection
 	$response['type'] = 'FeatureCollection';
@@ -570,16 +576,67 @@ function wpmap_get_map_data_callback() {
 	
 		$prop=array();
 		$prop['id'] = $row['ID'];
-		$prop['tit'] = get_the_title($row['ID']);
+		// permalink
 		$prop['perma'] = get_permalink($row['ID']);
-		if ( $popup_text == 'excerpt' ) { $post_desc = wp_trim_words( $row['post_content'], 55 ); }
-		else { $post_desc = $row['post_content']; }
-		//$prop['desc'] = apply_filters('the_content', utf8_encode($post_desc));
-		$prop['desc'] = apply_filters('the_content', $post_desc);
+		// title
+		if ( array_key_exists('post_title',WPMAP_FIELDS_IN_MAP) ) {
+//			$prop['post_title']['value'] = get_the_title($row['ID']);
+			$f = WPMAP_FIELDS_IN_MAP['post_title'];
+			if ( $f[4] == 1 ) { $v = '<a href="'.$prop['perma'].'">'.get_the_title($row['ID']).'</a>'; }
+			else { $v = get_the_title($row['ID']); }
+			$prop[$f[0]][$f[1]] = $f[2].$v.$f[3];
+		}
+		// content
+		if ( array_key_exists('post_content',WPMAP_FIELDS_IN_MAP) ) {
+			$f = WPMAP_FIELDS_IN_MAP['post_content'];
+			if ( $popup_text == 'excerpt' ) { $post_desc = wp_trim_words( $row['post_content'], 55 ); }
+			else { $post_desc = $row['post_content']; }
+			//$prop['desc'] = apply_filters('the_content', utf8_encode($post_desc));
+//			$prop['post_content']['value'] = apply_filters('the_content', $post_desc);
+			$prop[$f[0]][$f[1]] = '<div class="popup-desc">'.apply_filters('the_content', $post_desc).'</div>';
+		}
+		// featured image
+		if ( array_key_exists('featured_image',WPMAP_FIELDS_IN_MAP) && has_post_thumbnail($row['ID']) ) {
+			$f = WPMAP_FIELDS_IN_MAP['featured_image'];
+			$fid = get_post_thumbnail_id($row['ID']);
+			$fimg = wp_get_attachment_image_src( $fid,$f[2] );
+//			$prop['featured_image']['value'] = $fimg[0];
+			$prop[$f[0]][$f[1]] = '<img src="'.$fimg[0].'" alt="'.get_the_title($fid).'" />';
+		}
+		// taxonomies
+		foreach ( WPMAP_FIELDS_IN_MAP['taxonomies'] as $tax_id => $tax ) {
+			$ts = get_the_terms($row['ID'],$tax_id);
+			if ( $ts === false ) continue;
+			$ts_out = array();
+			foreach ( $ts as $t ) {
+				$ts_out[] = $tax[4].$t->name.$tax[5];
+			}
+//			$prop['taxonomies'][$tax_id]['value'] = implode(', ',$ts_out);
+			$prop[$tax[0]][$tax[1]] = $tax[2].implode(' ',$ts_out).$tax[3];
+		}
+		// custom fields
+		foreach ( WPMAP_FIELDS_IN_MAP['custom_fields'] as $k => $cf ) {
+//			$prop['custom_fields'][$k]['value'] = get_post_meta($row['ID'],$k,true);
+			$prop[$cf[0]][$cf[1]] = $cf[2].get_post_meta($row['ID'],$k,true).$cf[3];
+			
+		}
+//		// where and order values for each field
+//		foreach ( WPMAP_FIELDS_IN_MAP as $k => $g ) {
+//			$prop[$k]['where'] = $g[0];
+//			$prop[$k]['order'] = $g[1];
+//			if ( $k == 'taxonomies' || $k == 'custom_fields' ) {
+//				foreach ( $g as $id => $f ) {
+//					$prop[$k][$id]['where'] = $f[0];
+//					$prop[$k][$id]['order'] = $f[1];
+//				}
+//			}
+//		}
+		// icon
 		if ( $layer_by != '' ) { $prop['layer'] = $row[$layer_by]; }
 		$icon_data = get_post_meta($row['ID'],WPMAP_ICON,true);
 		$prop['icon'] = $icon_data['guid'];
-	
+
+		
 		$f=array();
 		$geom=array();
 		$coords=array();

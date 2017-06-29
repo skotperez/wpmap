@@ -142,7 +142,47 @@ var lyrPlq;	// the geoJson layer to display plaques with
 	//});
 
 	function sidebarContent(layer) {
-		popupContent = "<h3><a href='" + layer.feature.properties.perma + "'>" + layer.feature.properties.tit + "</a></h3><div>" + layer.feature.properties.desc + "</div>";
+		popupContent = '';
+		console.log(layer.feature.properties);
+		// build popup parts
+
+		// figure
+		if ( layer.feature.properties.figure ) {
+			popupContent += '<figure class="popup-figure">';
+			jQuery.each( layer.feature.properties.figure, function ( i,f ) {
+				popupContent += f;
+			});
+			popupContent += '</figure>';
+		}
+
+		// header
+		if ( layer.feature.properties.header ) {
+			popupContent += '<header class="popup-header">';
+			jQuery.each( layer.feature.properties.header, function ( i,f ) {
+				popupContent += f;
+			});
+			popupContent += '</header>';
+		}
+
+		// body
+		if ( layer.feature.properties.body ) {
+			popupContent += '<div class="popup-body">';
+			jQuery.each( layer.feature.properties.body, function ( i,f ) {
+				popupContent += f;
+			});
+			popupContent += '</div>';
+		}
+
+		// footer
+		if ( layer.feature.properties.footer ) {
+			popupContent += '<footer class="popup-footer">';
+			jQuery.each( layer.feature.properties.footer, function ( i,f ) {
+				popupContent += f;
+			});
+			popupContent += '</footer>';
+		}
+
+//		popupContent += "<h3><a href='" + layer.feature.properties.perma + "'>" + layer.feature.properties.tit + "</a></h3><div>" + layer.feature.properties.desc + "</div>";
 		return popupContent;
 	}
 
