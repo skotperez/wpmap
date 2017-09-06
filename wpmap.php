@@ -42,8 +42,9 @@ if (!defined('WPMAP_HOUSENUMBER'))
 if (!defined('WPMAP_POSTALCODE'))
     define('WPMAP_POSTAL_CODE', $wpmap_code);
 
-if (!defined('WPMAP_FIELDS_IN_MAP'))
-    define('WPMAP_FIELDS_IN_MAP', $wpmap_fields_in_map);
+// constants containing arrays only supported in PHP7
+//if (!defined('WPMAP_FIELDS_IN_MAP'))
+//    define('WPMAP_FIELDS_IN_MAP', $wpmap_fields_in_map);
 
 if (!defined('WPMAP_MAP_LAT'))
     define('WPMAP_MAP_LAT', $default_start_lat);
@@ -149,7 +150,7 @@ function wpmap_register_load_scripts() {
 	wp_enqueue_script(
 		'wpmap-js',
 		plugins_url( 'js/map.js' , __FILE__),
-		array( 'leaflet-hash' ),
+		array( 'leaflet-sidebar-js','leaflet-hash' ),
 		$ver,
 		TRUE
 	);
@@ -330,45 +331,45 @@ function wpmap_geosearch() {
 }
 
 // get map function and shortcode parameters
-	$parameters = array(
-		// query filters
-		"post_type" => '',
-		"post_status" => 'publish',
-		"post_in" => '',
-		"post_not_in" => '',
-		"meta_key" => '',
-		"meta_value" => '',
-		"term_slug" => '',
-		// layers control
-		"layers_by" => '',
-		"layers" => '',
-		"colors" => '',
-		"icons" => '',
-		"default_color" => '#000',
-		'default_icon' => 'icon.png',
-		// map config
-		"center_lat" => WPMAP_MAP_LAT,
-		"center_lon" => WPMAP_MAP_LON,
-		"zoom_ini" => WPMAP_INI_ZOOM,
-		"zoom_min" => WPMAP_MIN_ZOOM,
-		"zoom_max" => WPMAP_MAX_ZOOM,
-		"map_width" => '100%',
-		"map_height" => '300px',
-		// popup
-		"popup_text" => '',
-		"popup_max_width" => '300',
-		"popup_max_height" => '200',
-		// markers
-		'marker_type' => 'circle', // [circle|icon]
-		'marker_radius' => '15',
-		'marker_opacity' => '0.8',
-		'marker_fillOpacity' => '0.8',
-		'icon_size' => '40,64',
-		// activate geosearch on click
-		'geosearch' => 1,
-		// activate geosearch on click
-		'sidebar' => 1
-	);
+$parameters = array(
+	// query filters
+	"post_type" => '',
+	"post_status" => 'publish',
+	"post_in" => '',
+	"post_not_in" => '',
+	"meta_key" => '',
+	"meta_value" => '',
+	"term_slug" => '',
+	// layers control
+	"layers_by" => '',
+	"layers" => '',
+	"colors" => '',
+	"icons" => '',
+	"default_color" => '#000',
+	'default_icon' => 'icon.png',
+	// map config
+	"center_lat" => WPMAP_MAP_LAT,
+	"center_lon" => WPMAP_MAP_LON,
+	"zoom_ini" => WPMAP_INI_ZOOM,
+	"zoom_min" => WPMAP_MIN_ZOOM,
+	"zoom_max" => WPMAP_MAX_ZOOM,
+	"map_width" => '100%',
+	"map_height" => '300px',
+	// popup
+	"popup_text" => '',
+	"popup_max_width" => '300',
+	"popup_max_height" => '200',
+	// markers
+	'marker_type' => 'circle', // [circle|icon]
+	'marker_radius' => '15',
+	'marker_opacity' => '0.8',
+	'marker_fillOpacity' => '0.8',
+	'icon_size' => '40,64',
+	// activate geosearch on click
+	'geosearch' => 1,
+	// activate geosearch on click
+	'sidebar' => 1
+);
 
 // wpmap shortcode
 add_shortcode('wpmap', 'wpmap_shortcode');
@@ -566,6 +567,7 @@ function wpmap_get_map_data_callback() {
 	$query_results = $wpdb->get_results( $sql_query , ARRAY_A );
 
 	// BUILD GEOJSON RESPONSE
+	global $wpmap_fields_in_map;
 	$response = array(); // place to store the geojson result
 	$features = array(); // array to build up the feature collection
 	$response['type'] = 'FeatureCollection';
@@ -579,16 +581,16 @@ function wpmap_get_map_data_callback() {
 		// permalink
 		$prop['perma'] = get_permalink($row['ID']);
 		// title
-		if ( array_key_exists('post_title',WPMAP_FIELDS_IN_MAP) ) {
+		if ( array_key_exists('post_title',$wpmap_fields_in_map) ) {
 //			$prop['post_title']['value'] = get_the_title($row['ID']);
-			$f = WPMAP_FIELDS_IN_MAP['post_title'];
+			$f = $wpmap_fields_in_map['post_title'];
 			if ( $f[4] == 1 ) { $v = '<a href="'.$prop['perma'].'">'.get_the_title($row['ID']).'</a>'; }
 			else { $v = get_the_title($row['ID']); }
 			$prop[$f[0]][$f[1]] = $f[2].$v.$f[3];
 		}
 		// content
-		if ( array_key_exists('post_content',WPMAP_FIELDS_IN_MAP) ) {
-			$f = WPMAP_FIELDS_IN_MAP['post_content'];
+		if ( array_key_exists('post_content',$wpmap_fields_in_map) ) {
+			$f = $wpmap_fields_in_map['post_content'];
 			if ( $popup_text == 'excerpt' ) { $post_desc = wp_trim_words( $row['post_content'], 55 ); }
 			else { $post_desc = $row['post_content']; }
 			//$prop['desc'] = apply_filters('the_content', utf8_encode($post_desc));
@@ -596,15 +598,15 @@ function wpmap_get_map_data_callback() {
 			$prop[$f[0]][$f[1]] = '<div class="popup-desc">'.apply_filters('the_content', $post_desc).'</div>';
 		}
 		// featured image
-		if ( array_key_exists('featured_image',WPMAP_FIELDS_IN_MAP) && has_post_thumbnail($row['ID']) ) {
-			$f = WPMAP_FIELDS_IN_MAP['featured_image'];
+		if ( array_key_exists('featured_image',$wpmap_fields_in_map) && has_post_thumbnail($row['ID']) ) {
+			$f = $wpmap_fields_in_map['featured_image'];
 			$fid = get_post_thumbnail_id($row['ID']);
 			$fimg = wp_get_attachment_image_src( $fid,$f[2] );
 //			$prop['featured_image']['value'] = $fimg[0];
 			$prop[$f[0]][$f[1]] = '<img src="'.$fimg[0].'" alt="'.get_the_title($fid).'" />';
 		}
 		// taxonomies
-		foreach ( WPMAP_FIELDS_IN_MAP['taxonomies'] as $tax_id => $tax ) {
+		foreach ( $wpmap_fields_in_map['taxonomies'] as $tax_id => $tax ) {
 			$ts = get_the_terms($row['ID'],$tax_id);
 			if ( $ts === false ) continue;
 			$ts_out = array();
@@ -615,13 +617,13 @@ function wpmap_get_map_data_callback() {
 			$prop[$tax[0]][$tax[1]] = $tax[2].implode(' ',$ts_out).$tax[3];
 		}
 		// custom fields
-		foreach ( WPMAP_FIELDS_IN_MAP['custom_fields'] as $k => $cf ) {
+		foreach ( $wpmap_fields_in_map['custom_fields'] as $k => $cf ) {
 //			$prop['custom_fields'][$k]['value'] = get_post_meta($row['ID'],$k,true);
 			$prop[$cf[0]][$cf[1]] = $cf[2].get_post_meta($row['ID'],$k,true).$cf[3];
 			
 		}
 //		// where and order values for each field
-//		foreach ( WPMAP_FIELDS_IN_MAP as $k => $g ) {
+//		foreach ( $wpmap_fields_in_map as $k => $g ) {
 //			$prop[$k]['where'] = $g[0];
 //			$prop[$k]['order'] = $g[1];
 //			if ( $k == 'taxonomies' || $k == 'custom_fields' ) {
