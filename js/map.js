@@ -9,8 +9,8 @@ var lyrPlq;	// the geoJson layer to display plaques with
 //function init() {	
 
 	// base layer
-	var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';    
-	var osmAttrib='Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+	var osmUrl='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';    
+	var osmAttrib='Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors';
 	
 	lyrOsm = new L.TileLayer(osmUrl, {
 		minZoom: minZoomLevel,
@@ -143,7 +143,6 @@ var lyrPlq;	// the geoJson layer to display plaques with
 
 	function sidebarContent(layer) {
 		popupContent = '';
-		console.log(layer.feature.properties);
 		// build popup parts
 
 		// figure
@@ -215,7 +214,6 @@ function whenMapMoves(e) {
 
 //function setIcon(feature) {
 //	var pointStyle = {
-//		//iconUrl: 'http://huertos.wpmap.localhost/wp-content/uploads/sites/4/2017/06/icon.huerto.01.png',
 //		iconUrl: feature.properties.icon,
 //	    iconSize: [70, 96],
 //	    iconAnchor: [22, 94],
@@ -247,7 +245,9 @@ function whenMapMoves(e) {
 //}
 
 function askForPlaques() {
+	//console.log(ajaxUrl);
 	//var data='action=wpmap_get_map_data&bbox=' + map.getBounds().toBBoxString() + '&post_type=' + pType + '&post_status=' + pStatus + '&post_in=' + pIn + '&post_not_in=' + pNotIn + '&meta_key=' + mKeys + '&meta_value=' + mValues + '&term_slug=' + tSlugs + '&layers_by=' + layersBy + '&popup_text=' + popupText;
+	//console.log(data);
 	var data = {
 		action: 'wpmap_get_map_data',
 		bbox: map.getBounds().toBBoxString(),
