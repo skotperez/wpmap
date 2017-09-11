@@ -58,8 +58,8 @@ var lyrPlq;	// the geoJson layer to display plaques with
 				
 				var iconStyle = new L.icon({
 					iconUrl: iconUrl,
-					//iconSize: [70, 96],
-					iconAnchor: [22, 94],
+					iconSize: [iconWidth, iconHeight],
+					iconAnchor: [iconWidth/2, iconHeight],
 					popupAnchor: [-3, -76],
 					//shadowUrl: 'my-icon-shadow.png',
 					//shadowSize: [68, 95],

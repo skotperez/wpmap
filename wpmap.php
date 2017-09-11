@@ -18,6 +18,12 @@ if (!defined('WPMAP_ICONS_PATH'))
 if (!defined('WPMAP_ICON'))
     define('WPMAP_ICON', $wpmap_icon);
 
+if (!defined('WPMAP_ICON_WIDTH'))
+    define('WPMAP_ICON_WIDTH', $wpmap_icon_width);
+
+if (!defined('WPMAP_ICON_HEIGHT'))
+    define('WPMAP_ICON_HEIGHT', $wpmap_icon_height);
+
 if (!defined('WPMAP_LAT'))
     define('WPMAP_LAT', $wpmap_lat);
 
@@ -364,7 +370,8 @@ $parameters = array(
 	'marker_radius' => '15',
 	'marker_opacity' => '0.8',
 	'marker_fillOpacity' => '0.8',
-	'icon_size' => '40,64',
+	'icon_width' => WPMAP_ICON_WIDTH,
+	'icon_height' => WPMAP_ICON_HEIGHT,
 	// activate geosearch on click
 	'geosearch' => 1,
 	// activate geosearch on click
@@ -437,7 +444,8 @@ function wpmap_showmap( $args ) {
 		var markerRadius = '{$args['marker_radius']}';
 		var markerOpacity = '{$args['marker_opacity']}';
 		var markerFillOpacity = '{$args['marker_fillOpacity']}';
-		var iconSize = '{$args['icon_size']}';
+		var iconWidth = '{$args['icon_width']}';
+		var iconHeight = '{$args['icon_height']}';
 		var ajaxUrl = '".WPMAP_AJAX."';
 		</script>
 	";

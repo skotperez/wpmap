@@ -14,6 +14,8 @@ $wpmap_street = "streetname"; // custom field that stores street name
 $wpmap_number = "housenumber"; // custom field that stores house number
 $wpmap_code = "postalcode"; // custom field that stores postal code
 $wpmap_icon = 'icon'; // custom field that stores icon for each content
+$wpmap_icon_width = '47'; // default width for map icons
+$wpmap_icon_height = '64'; // default height for map icons
 $wpmap_fields_in_map = array(
 	// order must be a number between 1 and n
 	// where allowed values [figure|header|body|footer]
